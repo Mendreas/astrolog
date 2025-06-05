@@ -1,0 +1,16 @@
+{
+  "name": "astrolog",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "^5.8.2",
+    "node-fetch": "^3.3.2"
+  }
+}
