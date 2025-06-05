@@ -1,5 +1,12 @@
-// netlify/functions/astronomy.js
+// netlify/functions/astronomy.cjs
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+
+// Dados de autenticação da API
+  const applicationId = 'be9e2092-773e-44e9-9856-bf51a01d4cc7';
+  const applicationSecret = 'd8aa2fcb08d16a43b7aef292f6e4d5a1e5fb25001224b166102c12910101251eb954e305b1680dab5581feb38e02dcc131f3dadcb6035081a2145d428c9be7595ead0264fd198e2fd43dccd624cf05c9c4f2963f5257869da4399f9737ab8bad7e46ef2e816fdcd021411dfbd9effa84';
+  
+  // Inicialize a string de autenticação
+const authString = Buffer.from(`${applicationId}:${applicationSecret}`).toString('base64');
 
 exports.handler = async (event) => {
   // Debug temporário:
@@ -9,14 +16,8 @@ exports.handler = async (event) => {
   console.log("Authorization header:", `Basic ${authString}`);
 
   // endpoint do tipo 'bodies/positions'
-  const { endpoint = '' } = event.queryStringParameters;
-
-  // Os dados da AstronomyAPI:
-  const applicationId = 'be9e2092-773e-44e9-9856-bf51a01d4cc7';
-  const applicationSecret = 'd8aa2fcb08d16a43b7aef292f6e4d5a1e5fb25001224b166102c12910101251eb954e305b1680dab5581feb38e02dcc131f3dadcb6035081a2145d428c9be7595ead0264fd198e2fd43dccd624cf05c9c4f2963f5257869da4399f9737ab8bad7e46ef2e816fdcd021411dfbd9effa84';
-  const apiUrl = `https://api.astronomyapi.com/api/v2/${endpoint}`;
-
-  const authString = Buffer.from(`${applicationId}:${applicationSecret}`).toString('base64');
+  	const { endpoint = '' } = event.queryStringParameters;
+	const apiUrl = `https://api.astronomyapi.com/api/v2/${endpoint}`;
 
   try {
     const response = await fetch(apiUrl, {
@@ -38,10 +39,10 @@ exports.handler = async (event) => {
       body: JSON.stringify(data),
     };
   } catch (err) {
-    console.error('Erro na chamada da API:', err);
+    console.error('Erro na chamada da API:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Erro ao buscar dados da AstronomyAPI' }),
+      body: JSON.stringify({ message: "Erro ao acessar API", error }),
     };
   }
 };
