@@ -1,5 +1,5 @@
 // netlify/functions/astronomy.js
-const fetch = require('node-fetch'); // Usando require() para CommonJS
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 exports.handler = async (event) => {
   // Debug temporário:
