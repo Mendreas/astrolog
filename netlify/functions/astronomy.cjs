@@ -6,7 +6,8 @@ const applicationId = 'be9e2092-773e-44e9-9856-bf51a01d4cc7';
 const applicationSecret = 'd8aa2fcb08d16a43b7aef292f6e4d5a1e5fb25001224b166102c12910101251eb954e305b1680dab5581feb38e02dcc131f3dadcb6035081a2145d428c9be7595ead0264fd198e2fd43dccd624cf05c9c4f2963f5257869da4399f9737ab8bad7e46ef2e816fdcd021411dfbd9effa84';
 
 // Inicialize a string de autenticação
-const authString = Buffer.from(`${applicationId}:${applicationSecret}`).toString('base64');
+const authString = btoa(`${applicationId}:${applicationSecret}`);
+console.log("Authorization String: ", authString); // Para depuração
 
 exports.handler = async (event) => {
   // Debug temporário
