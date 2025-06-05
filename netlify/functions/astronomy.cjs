@@ -1,5 +1,5 @@
-// Importação correta para CommonJS
-const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+// Usando require() para node-fetch (versão 2)
+const fetch = require('node-fetch');
 
 // Dados de autenticação da API
 const applicationId = 'be9e2092-773e-44e9-9856-bf51a01d4cc7';
@@ -45,4 +45,5 @@ exports.handler = async (event) => {
     };
   }
 };
+
 
