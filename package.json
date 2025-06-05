@@ -10,6 +10,6 @@
   },
   "dependencies": {
     "astro": "^5.8.2",
-    "node-fetch": "^2.6.7"  // Certifique-se de que o node-fetch 2 está instalado
+    "node-fetch": "^2.7.0"
   }
 }
