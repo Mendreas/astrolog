@@ -39,6 +39,23 @@
 	<div id="tab-inicio" class="tab active">
 	  <h2>🌠 <span id="inicio-titulo"></span></h2>
 	
+		<label for="solarObjects">Corpos do Sistema Solar:</label>
+		<select id="solarObjects" multiple>
+		  <option value="sun" selected>Sol</option>
+		  <option value="moon" selected>Lua</option>
+		  <option value="mercury">Mercúrio</option>
+		  <option value="venus">Vénus</option>
+		  <option value="mars">Marte</option>
+		  <option value="jupiter">Júpiter</option>
+		  <option value="saturn">Saturno</option>
+		  <option value="uranus">Úrano</option>
+		  <option value="neptune">Neptuno</option>
+		  <option value="pluto">Plutão</option>
+		</select>
+		<button id="btnConsultar">Consultar posições</button>
+		
+		<div id="resultadosApi"></div>
+	
 	  <!-- Data -->
 	  <div class="inicio-row">
 	    <span id="inicio-date-label"></span>
