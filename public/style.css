@@ -842,3 +842,23 @@ body.light textarea {
 .autocomplete-dropdown div:hover {
   background: #383838;
 }
+
+/* Estilo para os botões */
+.solar-button {
+  background-color: #4caf50;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 25px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.solar-button:hover {
+  background-color: #388e3c;
+}
+
+.solar-button:active {
+  background-color: #2c6e2f;
+}
