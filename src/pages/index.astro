@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="/style.css" is:inline />
     <link rel="manifest" href="/manifest.json" />
     <!-- VirtualSky scripts para o mapa celeste -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://virtualsky.lco.global/virtualsky.min.js"></script>
 	<script src="/js/virtualsky.min.js" is:inline></script>
 	<script src="/js/astronomia.js" is:inline></script>
   </head>
@@ -44,7 +44,6 @@
 	
 	<div id="tab-inicio" class="tab active">
 	
-			<!-- WIDGET: O que posso observar agora? -->
 		<section style="margin-bottom:2rem; background: #242544; padding:1rem 2rem; border-radius:1rem; color:#fff; box-shadow:0 0 12px #0005">
 		  <h2 style="margin-bottom: 0.5rem;">🔭 O que posso observar agora?</h2>
 		  <div style="display:flex; gap:1.5rem; flex-wrap:wrap; align-items:flex-end">
@@ -68,7 +67,6 @@
 		  <div id="obsCard" style="margin-top:1.5rem;"></div>
 		</section>
 
-	
 	  <h2>🌠 <span id="inicio-titulo"></span></h2>
 
 	  <div class="meteoblue-widgets">
@@ -509,15 +507,7 @@
     <!-- Liga ao JS do public -->
     <script src="/app.js" is:inline></script>
 	
-	<script>
-// Catálogo rápido (podes adicionar mais Messier/NGC depois)
-const messierCatalog = [
-  { id: "M31", name: "Andrómeda", ra: 0.712, dec: 41.269, mag: 3.4, dist: 2.5, dist_unit: "milhões ly" }, // M31
-  { id: "M42", name: "Orion Nebulosa", ra: 5.591, dec: -5.389, mag: 4.0, dist: 1350, dist_unit: "ly" }, // M42
-  { id: "M13", name: "Hércules Globular", ra: 16.698, dec: 36.467, mag: 5.8, dist: 25000, dist_unit: "ly" } // M13
-];
-
-// Lista planetas
+<script>
 const planetsList = [
   { id: "sun", name: "Sol" },
   { id: "moon", name: "Lua" },
@@ -530,7 +520,17 @@ const planetsList = [
   { id: "neptune", name: "Neptuno" }
 ];
 
-// Obtenção da data/hora/localização
+// Carrega catálogo Messier da API pública
+let messierCatalog = [];
+fetch("https://osricdienda.com/messier/api/all")
+  .then(resp => resp.json())
+  .then(data => {
+    messierCatalog = data;
+    fillObsDropdown();
+    showObsCard();
+  });
+
+// Leitura dos parâmetros atuais
 function getObsParams() {
   const date = document.getElementById("obsDateTime").value ? new Date(document.getElementById("obsDateTime").value) : new Date();
   const lat = parseFloat(document.getElementById("obsLat").value) || 38.72;
@@ -538,27 +538,25 @@ function getObsParams() {
   return { date, lat, lng };
 }
 
-// Preenche dropdown com objetos visíveis
+// Preenche o dropdown (planetas + messier)
 function fillObsDropdown() {
   const sel = document.getElementById("obsObjectSelect");
+  if (!sel) return;
   sel.innerHTML = "";
-  const params = getObsParams();
-  const now = params.date;
-  const lst = [];
-
-  // Planetas/Sol/Lua sempre visíveis (mas filtra por Altitude depois)
-  planetsList.forEach(p => lst.push({ id: p.id, name: p.name, type: "planet" }));
-
-  // Messier: todos (podes filtrar por magnitude/dist depois)
-  messierCatalog.forEach(m => lst.push({ id: m.id, name: m.name, type: "messier" }));
-
-  // Cria opções (mais tarde podemos filtrar os que estão abaixo do horizonte)
-  lst.forEach(o => {
+  planetsList.forEach(p => {
     const option = document.createElement("option");
-    option.value = o.id;
-    option.textContent = o.name + (o.type === "messier" ? ` (${o.id})` : "");
+    option.value = p.id;
+    option.textContent = p.name;
     sel.appendChild(option);
   });
+  if (messierCatalog && messierCatalog.length > 0) {
+    messierCatalog.forEach(obj => {
+      const option = document.createElement("option");
+      option.value = obj.messier.replace("M", "m"); // id ex: m1, m31, etc.
+      option.textContent = `${obj.name} (${obj.messier})`;
+      sel.appendChild(option);
+    });
+  }
 }
 
 // Detetar localização
@@ -567,7 +565,6 @@ document.getElementById("obsGeoBtn").onclick = function() {
     navigator.geolocation.getCurrentPosition(pos => {
       document.getElementById("obsLat").value = pos.coords.latitude.toFixed(2);
       document.getElementById("obsLng").value = pos.coords.longitude.toFixed(2);
-      fillObsDropdown();
       showObsCard();
     });
   }
@@ -576,81 +573,77 @@ document.getElementById("obsGeoBtn").onclick = function() {
 // Atualizar hora agora
 document.getElementById("obsRefreshBtn").onclick = function() {
   document.getElementById("obsDateTime").value = new Date().toISOString().slice(0,16);
-  fillObsDropdown();
   showObsCard();
 };
 
-// Atualiza lista de objetos quando muda a hora/local
-["obsDateTime", "obsLat", "obsLng"].forEach(id => {
-  document.getElementById(id).onchange = () => { fillObsDropdown(); showObsCard(); }
+// Atualiza info ao mudar parâmetros
+["obsDateTime", "obsLat", "obsLng", "obsObjectSelect"].forEach(id => {
+  document.getElementById(id).onchange = showObsCard;
 });
-document.getElementById("obsObjectSelect").onchange = showObsCard;
 
-// Preenche cartão de dados
+// Cria cartão visual
 function showObsCard() {
   const { date, lat, lng } = getObsParams();
   const objId = document.getElementById("obsObjectSelect").value;
   let card = "";
-  // Planetas/Sol/Lua
   const pl = planetsList.find(x => x.id === objId);
   if (pl) {
-    try {
-      // JS Astronomia
-      const jd = window.astronomia.dateToJD(date);
-      let pos;
-      if (pl.id === "moon") {
-        pos = window.astronomia.moon.position(jd, lat, lng);
-        pos.mag = "-12.7";
-        pos.dist = (window.astronomia.moon.distance(jd) / 149597870.7).toFixed(2); // AU
-      } else if (pl.id === "sun") {
-        pos = window.astronomia.sun.position(jd, lat, lng);
-        pos.mag = "-26.7";
-        pos.dist = (window.astronomia.sun.distance(jd) / 149597870.7).toFixed(2);
-      } else {
-        pos = window.astronomia[pl.id].position(jd, lat, lng);
-        pos.mag = window.astronomia[pl.id].mag(jd);
-        pos.dist = (window.astronomia[pl.id].distance(jd) / 149597870.7).toFixed(2);
-      }
-      // Horas de nascimento/ocaso (simplificação)
-      // (Ideal: usar lib tipo suncalc ou rotina extra para rise/set)
+    // Astronomy Engine: efemérides reais
+    const observer = new Astronomy.Observer(lat, lng, 0);
+    let body = Astronomy.Body[pl.id.charAt(0).toUpperCase() + pl.id.slice(1)];
+    if (pl.id === "sun") body = Astronomy.Body.Sun;
+    if (pl.id === "moon") body = Astronomy.Body.Moon;
+    // RA/DEC
+    const eq = Astronomy.Equator(body, date, observer, true, true);
+    // Alt/Az
+    const hor = Astronomy.Horizontal(date, observer, eq.ra, eq.dec, "normal");
+    // Nascimento/Ocaso (atenção: pode devolver null)
+    const rise = Astronomy.SearchRiseSet(body, observer, +1, date, 300);
+    const set = Astronomy.SearchRiseSet(body, observer, -1, date, 300);
+    // Magnitude: exemplo aproximado, usar lib para real se quiseres
+    let mag = eq.mag ? eq.mag.toFixed(1) : "-";
+    // Distância AU
+    let dist = eq.dist ? eq.dist.toFixed(2) + " UA" : "-";
+    // Formatação
+    card = `
+    <div style="background:#39396a;padding:1em 1.3em;border-radius:1em;color:#fff;max-width:380px;">
+      <div style="font-size:1.2em;font-weight:bold;">${pl.name}
+        <span style="float:right; color: gold; font-size:1em">Magnitude: <b>${mag}</b></span>
+      </div>
+      <hr>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.3em 1.2em;">
+        <span>Nascimento:</span><span><b>${rise ? rise.date.toTimeString().slice(0,5) : "-"}</b></span>
+        <span>Ocaso:</span><span><b>${set ? set.date.toTimeString().slice(0,5) : "-"}</b></span>
+        <span>Altitude:</span><span><b>${hor.altitude.toFixed(1)}º</b></span>
+        <span>Azimute:</span><span><b>${hor.azimuth.toFixed(1)}º</b></span>
+        <span>RA:</span><span><b>${formatRA(eq.ra)}</b></span>
+        <span>DEC:</span><span><b>${formatDEC(eq.dec)}</b></span>
+        <span>Distância:</span><span><b>${dist}</b></span>
+      </div>
+    </div>`;
+  } else if (messierCatalog && messierCatalog.length > 0) {
+    // MESSIER
+    const obj = messierCatalog.find(x => objId.toUpperCase() === x.messier);
+    if (obj) {
+      // Cálculo Alt/Az
+      const ra = parseFloat(obj.ra); // em horas
+      const dec = parseFloat(obj.dec); // em graus
+      // Converter para graus
+      const lst = Astronomy.SiderealTime(date, lng);
+      const ha = lst - ra*15; // em graus
+      const altaz = Astronomy.Horizon(date, new Astronomy.Observer(lat, lng, 0), ra, dec, "normal");
       card = `
-      <div style="background:#3b3b5b; padding:1.3rem 2rem; border-radius:1rem; box-shadow:0 0 8px #0008; max-width:340px;">
-        <div style="font-size:1.5em; font-weight:bold;">${pl.name}
-          <span style="float:right; color: gold; font-size:1em">Magnitude: <b>${pos.mag || "-"}</b></span>
+      <div style="background:#39396a;padding:1em 1.3em;border-radius:1em;color:#fff;max-width:380px;">
+        <div style="font-size:1.2em;font-weight:bold;">${obj.name} <span style="color:#8fa">(${obj.messier})</span>
+          <span style="float:right; color: gold; font-size:1em">Magnitude: <b>${obj.mag || "-"}</b></span>
         </div>
         <hr>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.3em 1.4em;">
-          <span>Nascimento:</span><span><b>-</b></span>
-          <span>Ocaso:</span><span><b>-</b></span>
-          <span>Altitude:</span><span><b>${(pos.alt || "-").toFixed(1)}º</b></span>
-          <span>Azimute:</span><span><b>${(pos.az || "-").toFixed(1)}º</b></span>
-          <span>RA:</span><span><b>${window.astronomia.coord.toHMS(pos.ra, "h")}</b></span>
-          <span>DEC:</span><span><b>${window.astronomia.coord.toDMS(pos.dec, "°")}</b></span>
-          <span>Distância:</span><span><b>${pos.dist} AU</b></span>
-        </div>
-      </div>`;
-    } catch (e) {
-      card = "<b>Erro a calcular efemérides.</b>";
-    }
-  } else {
-    // Messier/NGC
-    const m = messierCatalog.find(x => x.id === objId);
-    if (m) {
-      // Calcula Alt/Az para o objeto na data/localização
-      const ha = window.astronomia.sidereal.apparent0(date) + lng - (m.ra * 15);
-      const altaz = window.astronomia.coord.eqToHz(m.ra, m.dec, lat, ha);
-      card = `
-      <div style="background:#3b3b5b; padding:1.3rem 2rem; border-radius:1rem; box-shadow:0 0 8px #0008; max-width:340px;">
-        <div style="font-size:1.5em; font-weight:bold;">${m.name} <span style="color:#8fa">(${m.id})</span>
-          <span style="float:right; color: gold; font-size:1em">Magnitude: <b>${m.mag}</b></span>
-        </div>
-        <hr>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.3em 1.4em;">
-          <span>Altitude:</span><span><b>${(altaz.alt).toFixed(1)}º</b></span>
-          <span>Azimute:</span><span><b>${(altaz.az).toFixed(1)}º</b></span>
-          <span>RA:</span><span><b>${window.astronomia.coord.toHMS(m.ra, "h")}</b></span>
-          <span>DEC:</span><span><b>${window.astronomia.coord.toDMS(m.dec, "°")}</b></span>
-          <span>Distância:</span><span><b>${m.dist} ${m.dist_unit}</b></span>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.3em 1.2em;">
+          <span>Altitude:</span><span><b>${altaz.altitude ? altaz.altitude.toFixed(1) : "-"}º</b></span>
+          <span>Azimute:</span><span><b>${altaz.azimuth ? altaz.azimuth.toFixed(1) : "-"}º</b></span>
+          <span>RA:</span><span><b>${formatRA(ra)}</b></span>
+          <span>DEC:</span><span><b>${formatDEC(dec)}</b></span>
+          <span>Distância:</span><span><b>${obj.distance_ly ? obj.distance_ly + " ly" : "-"}</b></span>
         </div>
       </div>`;
     }
@@ -658,14 +651,27 @@ function showObsCard() {
   document.getElementById("obsCard").innerHTML = card;
 }
 
-// INIT (define valores iniciais)
+// Helpers para formatação
+function formatRA(ra) {
+  const h = Math.floor(ra);
+  const m = Math.floor((ra-h)*60);
+  const s = Math.round((((ra-h)*60)-m)*60);
+  return `${h.toString().padStart(2,"0")}h ${m.toString().padStart(2,"0")}m ${s.toString().padStart(2,"0")}s`;
+}
+function formatDEC(dec) {
+  const sign = dec < 0 ? "-" : "+";
+  const d = Math.abs(Math.floor(dec));
+  const m = Math.abs(Math.floor((Math.abs(dec)-d)*60));
+  const s = Math.abs(Math.round((((Math.abs(dec)-d)*60)-m)*60));
+  return `${sign}${d.toString().padStart(2,"0")}° ${m.toString().padStart(2,"0")}' ${s.toString().padStart(2,"0")}"`;
+}
+
+// INIT valores
 (function(){
   const dt = new Date();
   document.getElementById("obsDateTime").value = dt.toISOString().slice(0,16);
   document.getElementById("obsLat").value = 38.72;
   document.getElementById("obsLng").value = -9.14;
-  fillObsDropdown();
-  showObsCard();
 })();
 </script>
 	
