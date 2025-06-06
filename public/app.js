@@ -186,8 +186,8 @@ const STORE_NAME = 'observacoes';
 
 // 1. Função para gerar Authorization Header
 function getAuthHeader() {
-  const applicationId = '43751113-5e87-4a75-946f-0b232db2d51b';
-  const applicationSecret = 'd8aa2fcb08d16a43b7aef292f6e4d5a1e5fb25001224b166102c12910101251eb954e305b1680dab5581feb38e02dcc131f3dadcb6035081a2145d428c9be7598a39f4b07ad24fa6827cfb7c56e721242d1f54fa797c0121aa074ceec6df62307592f7ca4565f3eabcf51d776db54718';
+  const applicationId = '8344723d-df50-407f-a66e-80b10dfeb1f4';
+  const applicationSecret = 'd8aa2fcb08d16a43b7aef292f6e4d5a1e5fb25001224b166102c12910101251eb954e305b1680dab5581feb38e02dcc131f3dadcb6035081a2145d428c9be75914b3886e20f65c1e1a8d1b4a397d155e33df85722e4d74d55d17c58b721d1d140245cab83d7c6ecfed65bcd7c8c9d7d6';
   const raw = `${applicationId}:${applicationSecret}`;
   return 'Basic ' + btoa(raw);
 }
