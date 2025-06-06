@@ -560,13 +560,15 @@ document.addEventListener("DOMContentLoaded", () => {
 <p id="addSuccessMsg" class="success-msg" style="display: none">✔️ Observação adicionada com sucesso</p>
 </div>
     </div>
-    <!-- Liga ao JS do public -->
-    <script src="/app.js" is:inline></script>
 	
 	<script>
 fetch('/messier.json')
   .then(resp => resp.json())
   .then(data => {
+    messierCatalog = data;
+    fillObsDropdown();
+    showObsCard();
+  });
     window.messierCatalog = data; // podes usar noutros scripts
     // Exemplo: preenche dropdown
     const sel = document.getElementById('obsObjectSelect');
@@ -769,7 +771,89 @@ function formatDEC(dec) {
 })();
 </script>
 
+<script src="https://unpkg.com/astronomy-engine"></script>
+<script>
+const planetsList = [
+  { id: "sun", name: "Sol", body: "Sun" },
+  { id: "moon", name: "Lua", body: "Moon" },
+  { id: "mercury", name: "Mercúrio", body: "Mercury" },
+  { id: "venus", name: "Vénus", body: "Venus" },
+  { id: "mars", name: "Marte", body: "Mars" },
+  { id: "jupiter", name: "Júpiter", body: "Jupiter" },
+  { id: "saturn", name: "Saturno", body: "Saturn" },
+  { id: "uranus", name: "Úrano", body: "Uranus" },
+  { id: "neptune", name: "Neptuno", body: "Neptune" }
+];
 
+let messierCatalog = [];
+
+async function fetchMessierAndFill() {
+  const res = await fetch('/messier.json');
+  messierCatalog = await res.json();
+  fillObsDropdownVisible();
+}
+
+// Função para ver se ALTITUDE > 0º AGORA (ou nas próximas 24h)
+async function fillObsDropdownVisible() {
+  const sel = document.getElementById("obsObjectSelect");
+  sel.innerHTML = "";
+  const date = document.getElementById("obsDateTime").value ? new Date(document.getElementById("obsDateTime").value) : new Date();
+  const lat = parseFloat(document.getElementById("obsLat").value) || 38.72;
+  const lng = parseFloat(document.getElementById("obsLng").value) || -9.14;
+  const observer = new Astronomy.Observer(lat, lng, 0);
+
+  // ---- PLANETAS/LUA/SOL ----
+  for (const p of planetsList) {
+    const eq = Astronomy.Equator(Astronomy.Body[p.body], date, observer, true, true);
+    const hor = Astronomy.Horizontal(date, observer, eq.ra, eq.dec, "normal");
+    // Se visível agora (>0º) adiciona ao dropdown
+    if (hor.altitude > 0) {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = `${p.name}`;
+      sel.appendChild(opt);
+    }
+  }
+
+  // ---- MESSIER ----
+  // Espera até Messier estar carregado
+  if (messierCatalog && messierCatalog.length > 0) {
+    for (const obj of messierCatalog) {
+      const ra = parseFloat(obj.ra);
+      const dec = parseFloat(obj.dec);
+      const hor = Astronomy.Horizontal(date, observer, ra, dec, "normal");
+      if (hor.altitude > 0) {
+        const opt = document.createElement("option");
+        opt.value = obj.id || obj.messier;
+        opt.textContent = `${obj.messier} - ${obj.name}`;
+        sel.appendChild(opt);
+      }
+    }
+  }
+
+  if (sel.options.length === 0) {
+    const opt = document.createElement("option");
+    opt.textContent = "Nenhum objeto visível agora";
+    opt.disabled = true;
+    sel.appendChild(opt);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const dt = new Date();
+  document.getElementById("obsDateTime").value = dt.toISOString().slice(0,16);
+  document.getElementById("obsLat").value = 38.72;
+  document.getElementById("obsLng").value = -9.14;
+  fetchMessierAndFill();
+
+  ["obsDateTime", "obsLat", "obsLng"].forEach(id => {
+    document.getElementById(id).addEventListener("change", fillObsDropdownVisible);
+  });
+});
+</script>
+
+    <!-- Liga ao JS do public -->
+    <script src="/app.js"></script>
 	
    </body>
 </html>
