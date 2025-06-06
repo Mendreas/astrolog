@@ -16,20 +16,6 @@ let calendarioAno = new Date().getFullYear();
 const obsList = document.getElementById('observationsList');
 
 // =========================
-// FUNÇÃO PARA ASTRONOMYAPI (VIA NETLIFY FUNCTION)
-// =========================
-
-async function astronomyApi(endpoint, params = {}) {
-  const response = await fetch(`/.netlify/functions/astronomy?endpoint=${endpoint}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(params),
-  });
-  if (!response.ok) throw new Error('Erro na função AstronomyAPI Proxy');
-  return response.json();
-}
-
-// =========================
 // TRADUÇÕES
 // =========================
 const i18n = {
@@ -183,80 +169,6 @@ const i18n = {
 const DB_NAME = 'AstroLogDB';
 const DB_VERSION = 1;
 const STORE_NAME = 'observacoes';
-
-// 1. Função para gerar Authorization Header
-function getAuthHeader() {
-  const applicationId = '8344723d-df50-407f-a66e-80b10dfeb1f4';
-  const applicationSecret = 'd8aa2fcb08d16a43b7aef292f6e4d5a1e5fb25001224b166102c12910101251eb954e305b1680dab5581feb38e02dcc131f3dadcb6035081a2145d428c9be75914b3886e20f65c1e1a8d1b4a397d155e33df85722e4d74d55d17c58b721d1d140245cab83d7c6ecfed65bcd7c8c9d7d6';
-  const raw = `${applicationId}:${applicationSecret}`;
-  return 'Basic ' + btoa(raw);
-}
-
-// 2. Função para pedir posições
-async function fetchSolarSystemPositions(selectedBodies, observer) {
-  const apiUrl = 'https://api.astronomyapi.com/api/v2/bodies/positions';
-  const body = {
-    bodies: selectedBodies,
-    observer: {
-      latitude: observer.latitude,
-      longitude: observer.longitude,
-      date: observer.date
-    },
-    view: 'horizontal'
-  };
-
-  const response = await fetch(apiUrl, {
-    method: 'POST',
-    headers: {
-      "Authorization": getAuthHeader(),
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(body)
-  });
-
-  if (!response.ok) throw new Error('Erro ao contactar a AstronomyAPI!');
-  return response.json();
-}
-
-// 3. Função que vai ser chamada ao clicar no botão
-async function obterPosicoes() {
-  const select = document.getElementById('solarObjects');
-  const selectedBodies = Array.from(select.selectedOptions).map(opt => opt.value);
-
-  // Ajusta para a localização do utilizador se quiseres
-  const observer = {
-    latitude: 38.736946, // Exemplo: Lisboa
-    longitude: -9.142685,
-    date: new Date().toISOString().slice(0, 10)
-  };
-
-  const resultadosDiv = document.getElementById('resultadosApi');
-  resultadosDiv.innerHTML = 'A consultar...';
-
-  try {
-    const data = await fetchSolarSystemPositions(selectedBodies, observer);
-
-    // Monta uma listagem simples dos resultados
-    let html = '';
-    data.data.table.rows.forEach(row => {
-      const celeste = row.entry.name;
-      const cell = row.cells[0]; // Só pedimos para 1 data
-      html += `<b>${celeste}</b> (${row.entry.id})<br>`;
-      html += `Altura: ${cell.position.horizontal.altitude.string}<br>`;
-      html += `Azimute: ${cell.position.horizontal.azimuth.string}<br>`;
-      html += `Magnitude: ${cell.extraInfo.magnitude}<br>`;
-      html += `<hr>`;
-    });
-
-    resultadosDiv.innerHTML = html || 'Sem resultados.';
-  } catch (e) {
-    resultadosDiv.innerHTML = 'Erro: ' + e.message;
-  }
-}
-
-// 4. Ligar o botão à função
-document.getElementById('btnConsultar').addEventListener('click', obterPosicoes);
-
 
 function openDB() {
   return new Promise((resolve, reject) => {
@@ -490,72 +402,6 @@ async function atualizarTabInicio() {
       date: inicioData.toISOString().slice(0, 10)
     };
 
-    // 1. Fase da Lua
-    const moonPhaseData = await astronomyApi('bodies/phase', { format: 'json', observer });
-    const fase = moonPhaseData.data.phase.name;
-    const iluminacao = moonPhaseData.data.phase.illumination * 100;
-
-    // 2. Posições Sol/Lua
-    const posData = await astronomyApi('bodies/positions', {
-      bodies: ['sun', 'moon'],
-      observer,
-      view: 'horizontal'
-    });
-    const sol = posData.data.table.rows.find(r => r.entry.name.toLowerCase() === 'sun');
-    const lua = posData.data.table.rows.find(r => r.entry.name.toLowerCase() === 'moon');
-
-    // 3. Gerar HTML
-    dadosDiv.innerHTML = `
-      <div>🌙 <b>${t.faseLua || 'Fase da Lua'}:</b> ${fase} (${iluminacao.toFixed(1)}%)</div>
-      <div>☀️ <b>Sol:</b> Az ${sol.cells[0].position.azimuth.degrees.toFixed(1)}°, Alt ${sol.cells[0].position.altitude.degrees.toFixed(1)}°</div>
-      <div>🌙 <b>Lua:</b> Az ${lua.cells[0].position.azimuth.degrees.toFixed(1)}°, Alt ${lua.cells[0].position.altitude.degrees.toFixed(1)}°</div>
-    `;
-
-    // 4. (Opcional) Sky Chart
-    skyDiv.innerHTML = t.buscarTempo + " (sky chart)...";
-    const skyRes = await astronomyApi('studio/star-chart', {
-      observer,
-      style: 'inverted',
-      view: { type: 'area', parameters: { position: { equatorial: { rightAscension: 10, declination: 10 } }, zoom: 2 } }
-    });
-    if (skyRes.data && skyRes.data.imageUrl) {
-      skyDiv.innerHTML = `<img src="${skyRes.data.imageUrl}" alt="Sky chart" style="max-width:100%; border-radius:10px; box-shadow:0 2px 8px #000;">`;
-    } else {
-      skyDiv.innerHTML = t.erroGeo;
-    }
-  } catch (err) {
-    dadosDiv.innerHTML = '<span style="color:#f55">Erro a obter dados astronómicos.</span>';
-    skyDiv.innerHTML = '';
-  }
-
-  // Data
-  const now = new Date();
-  document.getElementById('inicio-date').textContent = now.toLocaleDateString(currentLang, {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-  });
-
-  // Localização
-  if (!localState.coords) {
-    await obterLocalizacao();
-  } else {
-    atualizarLocalLabel();
-  }
-
-  // Previsão do tempo
-  if (localState.coords) {
-    await mostrarPrevisaoTempo(localState.coords);
-  } else {
-    document.getElementById('inicio-previsao').innerHTML = `<span>${t.erroGeo}</span>`;
-  }
-
-  // Eventos astronómicos
-  mostrarEventosAstronomicos();
-
-  // Objetos visíveis
-  mostrarObjetosVisiveis();
-} // <-- Agora fecha aqui, só no fim de tudo!
-
-
 // ========== Localização Automática e Manual ==========
 async function obterLocalizacao() {
   const t = i18n[currentLang];
@@ -714,9 +560,6 @@ function traduzirTabInicio() {
 }
 
 // Chama atualizarTabInicio() ao abrir a tab, e também após mudar de língua!
-
-
-
 
 // =========================
 // EVENTOS E INICIALIZAÇÃO (DOMContentLoaded)

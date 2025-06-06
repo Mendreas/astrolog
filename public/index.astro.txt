@@ -538,19 +538,50 @@ function getObsParams() {
   return { date, lat, lng };
 }
 
+// Lista planetas
+const planetsList = [
+  { id: "sun", name: "Sol" }, { id: "moon", name: "Lua" }, { id: "mercury", name: "Mercúrio" },
+  { id: "venus", name: "Vénus" }, { id: "mars", name: "Marte" }, { id: "jupiter", name: "Júpiter" },
+  { id: "saturn", name: "Saturno" }, { id: "uranus", name: "Úrano" }, { id: "neptune", name: "Neptuno" }
+];
+
+let messierCatalog = [];
+
+// Função para ir buscar todos os Messier via API
+function loadMessierFromAPI() {
+  fetch('https://osricdienda.com/messier/api/messier')
+    .then(res => res.json())
+    .then(data => {
+      messierCatalog = data;
+      // Atualiza o dropdown
+      if (typeof fillObsDropdown === "function") fillObsDropdown();
+    })
+    .catch(err => console.error("Erro ao carregar Messier:", err));
+}
+window.addEventListener("DOMContentLoaded", loadMessierFromAPI);
+
+
 // Preenche dropdown com objetos visíveis
 function fillObsDropdown() {
   const sel = document.getElementById("obsObjectSelect");
   sel.innerHTML = "";
-  const params = getObsParams();
-  const now = params.date;
-  const lst = [];
 
-  // Planetas/Sol/Lua sempre visíveis (mas filtra por Altitude depois)
-  planetsList.forEach(p => lst.push({ id: p.id, name: p.name, type: "planet" }));
+  // Planetas/Sol/Lua
+  planetsList.forEach(p => {
+    const option = document.createElement("option");
+    option.value = p.id;
+    option.textContent = p.name;
+    sel.appendChild(option);
+  });
 
-  // Messier: todos (podes filtrar por magnitude/dist depois)
-  messierCatalog.forEach(m => lst.push({ id: m.id, name: m.name, type: "messier" }));
+  // Messier do catálogo da API
+  messierCatalog.forEach(m => {
+    const option = document.createElement("option");
+    option.value = `messier-${m.MessierNumber}`;
+    option.textContent = `${m.CommonName || 'Messier'} (${m.MessierNumber})`;
+    sel.appendChild(option);
+  });
+}
 
   // Cria opções (mais tarde podemos filtrar os que estão abaixo do horizonte)
   lst.forEach(o => {
@@ -591,6 +622,7 @@ function showObsCard() {
   const { date, lat, lng } = getObsParams();
   const objId = document.getElementById("obsObjectSelect").value;
   let card = "";
+
   // Planetas/Sol/Lua
   const pl = planetsList.find(x => x.id === objId);
   if (pl) {
@@ -633,29 +665,51 @@ function showObsCard() {
       card = "<b>Erro a calcular efemérides.</b>";
     }
   } else {
-    // Messier/NGC
-    const m = messierCatalog.find(x => x.id === objId);
+     // É um Messier
+    const n = objId.replace("messier-", "");
+    const m = messierCatalog.find(x => x.MessierNumber == n);
     if (m) {
-      // Calcula Alt/Az para o objeto na data/localização
-      const ha = window.astronomia.sidereal.apparent0(date) + lng - (m.ra * 15);
-      const altaz = window.astronomia.coord.eqToHz(m.ra, m.dec, lat, ha);
+      // Convert RA e DEC de string (ex: "05h 34m 31.94s", "+22° 00′ 52.2″") para graus
+      function parseRA(ra) {
+        const [h, m, s] = ra.match(/([\d.]+)/g).map(Number);
+        return h + m/60 + s/3600;
+      }
+      function parseDEC(dec) {
+        const sign = dec.trim().startsWith('-') ? -1 : 1;
+        const [d, m, s] = dec.match(/([\d.]+)/g).map(Number);
+        return sign * (Math.abs(d) + m/60 + s/3600);
+      }
+      const ra = parseRA(m.RA);
+      const dec = parseDEC(m.Dec);
+
+      // Calcula Alt/Az para o objeto
+      const ha = window.astronomia.sidereal.apparent0(date) + lng - (ra * 15);
+      const altaz = window.astronomia.coord.eqToHz(ra, dec, lat, ha);
+
       card = `
       <div style="background:#3b3b5b; padding:1.3rem 2rem; border-radius:1rem; box-shadow:0 0 8px #0008; max-width:340px;">
-        <div style="font-size:1.5em; font-weight:bold;">${m.name} <span style="color:#8fa">(${m.id})</span>
-          <span style="float:right; color: gold; font-size:1em">Magnitude: <b>${m.mag}</b></span>
+        <div style="font-size:1.5em; font-weight:bold;">
+          ${m.CommonName || 'Messier ' + m.MessierNumber}
+          <span style="color:#8fa; font-size:1em"> (M${m.MessierNumber})</span>
+          <span style="float:right; color: gold; font-size:1em">
+            Magnitude: <b>${m.Magnitude || "-"}</b>
+          </span>
         </div>
         <hr>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.3em 1.4em;">
+          <span>Tipo:</span><span><b>${m.ObjectType}</b></span>
+          <span>Constelação:</span><span><b>${m.Constellation}</b></span>
           <span>Altitude:</span><span><b>${(altaz.alt).toFixed(1)}º</b></span>
           <span>Azimute:</span><span><b>${(altaz.az).toFixed(1)}º</b></span>
-          <span>RA:</span><span><b>${window.astronomia.coord.toHMS(m.ra, "h")}</b></span>
-          <span>DEC:</span><span><b>${window.astronomia.coord.toDMS(m.dec, "°")}</b></span>
-          <span>Distância:</span><span><b>${m.dist} ${m.dist_unit}</b></span>
+          <span>RA:</span><span><b>${m.RA}</b></span>
+          <span>DEC:</span><span><b>${m.Dec}</b></span>
+          <span>Distância:</span><span><b>${m.Distance || "-"} ${m.Distance ? 'ly' : ''}</b></span>
         </div>
       </div>`;
     }
   }
   document.getElementById("obsCard").innerHTML = card;
+}
 }
 
 // INIT (define valores iniciais)
