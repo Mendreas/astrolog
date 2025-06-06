@@ -134,32 +134,6 @@
           </script>
         </div>
 
-        <!-- Widget Mapa Celeste (VirtualSky redondo) -->
-        <div>
-          <div style="font-weight:bold;text-align:center;margin-bottom:1rem;">Mapa Celeste agora</div>
-          <div id="starmap1" style="width:400px;height:400px; margin:auto;"></div>
-          <script>
-            $(document).ready(function() {
-              var planetarium = $.virtualsky({
-                id: 'starmap1',
-                width: 400,
-                height: 400,
-                projection: "stereo", // redondo
-                showconstellations: true,
-                showstarlabels: true,
-                showplanets: true,
-                showgridlines: true,
-                az: 180,
-                lat: 38.72, // Lisboa, muda se quiseres
-                long: -9.14,
-                negative: false,
-                lang: "pt"
-              });
-            });
-          </script>
-        </div>
-      </div>
-
       <!-- FIM widgets -->
 
 	  <!-- Data -->
@@ -520,7 +494,7 @@ const planetsList = [
 
 // Carrega catálogo Messier da API pública
 let messierCatalog = [];
-fetch("https://osricdienda.com/messier/api/all")
+fetch("https://osricdienda.com/messier/api/all.json")
   .then(resp => resp.json())
   .then(data => {
     messierCatalog = data;
