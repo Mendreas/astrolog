@@ -11,22 +11,7 @@
     <link rel="manifest" href="/manifest.json" />
 	<script src="https://widgets.astronomyapi.com/cdn/astronomy-api-widgets.js"></script>
   </head>
-  
-  <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    var client = new AstronomyAPI({
-      basicToken: "NDM3NTExMTMtNWU4Ny00YTc1LTk0NmYtMGIyMzJkYjJkNTFiOmQ4YWEyZmNiMDhkMTZhNDNiN2FlZjI5MmY2ZTRkNWExZTVmYjI1MDAxMjI0YjE2NjEwMmMxMjkxMDEwMTI1MWViOTU0ZTMwNWIxNjgwZGFiNTU4MWZlYjM4ZTAyZGNjMTMxZjNkYWRjYjYwMzUwODFhMjE0NWQ0MjhjOWJlNzU5OGEzOWY0YjA3YWQyNGZhNjgyN2NmYjdjNTZlNzIxMjQyZDFmNTRmYTc5N2MwMTIxYWEwNzRjZWVjNmRmNjIzMDc1OTJmN2NhNDU2NWYzZWFiY2Y1MWQ3NzZkYjU0NzE4", // Substitui aqui!
-    });
-
-    // Fase da Lua
-    client.moonPhase();
-
-    // Mapa do céu (starchart)
-    client.starChart();
-  });
-</script>
-
-  
+ 
   <body>
     <header>
       <h1>AstroLog</h1>
@@ -476,5 +461,20 @@
     </div>
     <!-- Liga ao JS do public -->
     <script src="/app.js" is:inline></script>
-  </body>
+		  
+		  <script>
+		  document.addEventListener("DOMContentLoaded", function () {
+		    var client = new AstronomyAPI({
+		      basicToken: "NDM3NTExMTMtNWU4Ny00YTc1LTk0NmYtMGIyMzJkYjJkNTFiOmQ4YWEyZmNiMDhkMTZhNDNiN2FlZjI5MmY2ZTRkNWExZTVmYjI1MDAxMjI0YjE2NjEwMmMxMjkxMDEwMTI1MWViOTU0ZTMwNWIxNjgwZGFiNTU4MWZlYjM4ZTAyZGNjMTMxZjNkYWRjYjYwMzUwODFhMjE0NWQ0MjhjOWJlNzU5OGEzOWY0YjA3YWQyNGZhNjgyN2NmYjdjNTZlNzIxMjQyZDFmNTRmYTc5N2MwMTIxYWEwNzRjZWVjNmRmNjIzMDc1OTJmN2NhNDU2NWYzZWFiY2Y1MWQ3NzZkYjU0NzE4", // Substitui aqui!
+		    });
+		
+		    // Fase da Lua
+		    client.moonPhase();
+		
+		    // Mapa do céu (starchart)
+		    client.starChart();
+		  });
+		</script>
+
+   </body>
 </html>
