@@ -14,6 +14,90 @@
 	  <script src="https://unpkg.com/astronomy-engine"></script>
 	</head>
  
+ <script>
+// --- Lista dos planetas, Lua, Sol ---
+const planetsList = [
+  { id: "sun", name: "Sol", body: "Sun" },
+  { id: "moon", name: "Lua", body: "Moon" },
+  { id: "mercury", name: "Mercúrio", body: "Mercury" },
+  { id: "venus", name: "Vénus", body: "Venus" },
+  { id: "mars", name: "Marte", body: "Mars" },
+  { id: "jupiter", name: "Júpiter", body: "Jupiter" },
+  { id: "saturn", name: "Saturno", body: "Saturn" },
+  { id: "uranus", name: "Úrano", body: "Uranus" },
+  { id: "neptune", name: "Neptuno", body: "Neptune" }
+];
+
+let messierCatalog = [];
+fetch('/messier.json').then(r=>r.json()).then(data => messierCatalog = data);
+
+// Função para ver se ALTITUDE > 0º AGORA (ou nas próximas 24h)
+async function fillObsDropdownVisible() {
+  const sel = document.getElementById("obsObjectSelect");
+  sel.innerHTML = "";
+  const date = document.getElementById("obsDateTime").value ? new Date(document.getElementById("obsDateTime").value) : new Date();
+  const lat = parseFloat(document.getElementById("obsLat").value) || 38.72;
+  const lng = parseFloat(document.getElementById("obsLng").value) || -9.14;
+  const observer = new Astronomy.Observer(lat, lng, 0);
+
+  // ---- PLANETAS/LUA/SOL ----
+  for (const p of planetsList) {
+    // Efeméride agora
+    const eq = Astronomy.Equator(Astronomy.Body[p.body], date, observer, true, true);
+    const hor = Astronomy.Horizontal(date, observer, eq.ra, eq.dec, "normal");
+    // Se visível agora (>0º) adiciona ao dropdown
+    if (hor.altitude > 0) {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = `${p.name}`;
+      sel.appendChild(opt);
+    }
+  }
+
+  // ---- MESSIER ----
+  // Dá tempo ao fetch para garantir messierCatalog carregado
+  await new Promise(res => setTimeout(res, 300));
+  if (messierCatalog && messierCatalog.length > 0) {
+    for (const obj of messierCatalog) {
+      // RA em horas, DEC em graus
+      const ra = parseFloat(obj.ra);
+      const dec = parseFloat(obj.dec);
+      // Usar Astronomy Engine para Alt/Az
+      const hor = Astronomy.Horizontal(date, observer, ra, dec, "normal");
+      // Mostra só se está acima do horizonte
+      if (hor.altitude > 0) {
+        const opt = document.createElement("option");
+        opt.value = obj.id;
+        opt.textContent = `${obj.id} - ${obj.name}`;
+        sel.appendChild(opt);
+      }
+    }
+  }
+
+  if (sel.options.length === 0) {
+    const opt = document.createElement("option");
+    opt.textContent = "Nenhum objeto visível agora";
+    opt.disabled = true;
+    sel.appendChild(opt);
+  }
+}
+
+// Sempre que muda a hora/localização, atualiza dropdown
+["obsDateTime", "obsLat", "obsLng"].forEach(id => {
+  document.getElementById(id).onchange = fillObsDropdownVisible;
+});
+
+// No arranque: inicializa campos e preenche
+document.addEventListener("DOMContentLoaded", () => {
+  const dt = new Date();
+  document.getElementById("obsDateTime").value = dt.toISOString().slice(0,16);
+  document.getElementById("obsLat").value = 38.72;
+  document.getElementById("obsLng").value = -9.14;
+  fillObsDropdownVisible();
+});
+</script>
+
+ 
   <body>
     <header>
       <h1>AstroLog</h1>
