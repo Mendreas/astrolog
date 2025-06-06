@@ -1,6 +1,7 @@
 ---
 ---
 // index.astro - página principal para Astro
+
 <!DOCTYPE html>
 <html lang="pt">
   <head>
@@ -9,7 +10,10 @@
     <title>AstroLog</title>
     <link rel="stylesheet" href="/style.css" is:inline />
     <link rel="manifest" href="/manifest.json" />
-	<script src="/js/astronomy-api-widgets.js" is:inline></script>
+    <!-- VirtualSky scripts para o mapa celeste -->
+    <script src="https://code.jquery.com/jquery-1.10.0.min.js"></script>
+    <script src="https://virtualsky.lco.global/virtualsky.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/astronomia@1.13.0/build/astronomia.min.js"></script>
   </head>
  
   <body>
@@ -39,64 +43,129 @@
      ================================== -->
 	
 	<div id="tab-inicio" class="tab active">
+	
+			<!-- WIDGET: O que posso observar agora? -->
+		<section style="margin-bottom:2rem; background: #242544; padding:1rem 2rem; border-radius:1rem; color:#fff; box-shadow:0 0 12px #0005">
+		  <h2 style="margin-bottom: 0.5rem;">🔭 O que posso observar agora?</h2>
+		  <div style="display:flex; gap:1.5rem; flex-wrap:wrap; align-items:flex-end">
+		    <div>
+		      <label for="obsObjectSelect">Objeto celeste:</label>
+		      <select id="obsObjectSelect" style="padding:0.5rem 1rem; font-size:1rem;"></select>
+		    </div>
+		    <div>
+		      <label for="obsDateTime">Data & Hora:</label>
+		      <input type="datetime-local" id="obsDateTime" style="padding:0.5rem; font-size:1rem;" />
+		    </div>
+		    <div>
+		      <label for="obsLat">Latitude:</label>
+		      <input type="number" id="obsLat" min="-90" max="90" step="0.01" style="width:5rem;" />
+		      <label for="obsLng">Longitude:</label>
+		      <input type="number" id="obsLng" min="-180" max="180" step="0.01" style="width:6rem;" />
+		      <button id="obsGeoBtn" title="Detectar localização">📍</button>
+		    </div>
+		    <button id="obsRefreshBtn">Atualizar</button>
+		  </div>
+		  <div id="obsCard" style="margin-top:1.5rem;"></div>
+		</section>
+
+	
 	  <h2>🌠 <span id="inicio-titulo"></span></h2>
 
-	<div class="meteoblue-widgets">
-	  <div>
-	    <iframe src="https://www.meteoblue.com/pt/tempo/widget/three?geoloc=detect&nocurrent=0&noforecast=0&days=4&tempunit=CELSIUS&windunit=KILOMETER_PER_HOUR&layout=image"
-	      frameborder="0" scrolling="NO" allowtransparency="true"
-	      sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
-	      style="width: 460px; height: 590px"></iframe>
+	  <div class="meteoblue-widgets">
+	    <!-- widgets Meteoblue mantidos -->
 	    <div>
-	      <a href="https://www.meteoblue.com/pt/tempo/semana/index?utm_source=three_widget&utm_medium=linkus&utm_content=three&utm_campaign=Weather%2BWidget"
-	         target="_blank" rel="noopener">meteoblue</a>
+	      <iframe src="https://www.meteoblue.com/pt/tempo/widget/three?geoloc=detect&nocurrent=0&noforecast=0&days=4&tempunit=CELSIUS&windunit=KILOMETER_PER_HOUR&layout=image"
+	        frameborder="0" scrolling="NO" allowtransparency="true"
+	        sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
+	        style="width: 460px; height: 590px"></iframe>
+	      <div>
+	        <a href="https://www.meteoblue.com/pt/tempo/semana/index?utm_source=three_widget&utm_medium=linkus&utm_content=three&utm_campaign=Weather%2BWidget"
+	           target="_blank" rel="noopener">meteoblue</a>
+	      </div>
+	    </div>
+	    <div>
+	      <iframe src="https://www.meteoblue.com/pt/tempo/widget/seeing?geoloc=detect&noground=0"
+	        frameborder="0" scrolling="NO" allowtransparency="true"
+	        sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
+	        style="width: 520px; height: 775px"></iframe>
+	      <div>
+	        <a href="https://www.meteoblue.com/pt/tempo/previsao/seeing?utm_source=seeing_widget&utm_medium=linkus&utm_content=seeing&utm_campaign=Weather%2BWidget"
+	           target="_blank" rel="noopener">meteoblue</a>
+	      </div>
+	    </div>
+	    <div>
+	      <iframe src="https://www.meteoblue.com/pt/tempo/mapas/widget?windAnimation=1&gust=1&satellite=1&cloudsAndPrecipitation=1&temperature=1&sunshine=1&extremeForecastIndex=1&geoloc=detect&tempunit=C&windunit=km%252Fh&lengthunit=metric&zoom=5&autowidth=manu"
+	        frameborder="0" scrolling="NO" allowtransparency="true"
+	        sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
+	        style="width: 500px; height: 720px"></iframe>
+	      <div>
+	        <a href="https://www.meteoblue.com/pt/tempo/mapas/index?utm_source=map_widget&utm_medium=linkus&utm_content=map&utm_campaign=Weather%2BWidget"
+	           target="_blank" rel="noopener">meteoblue</a>
+	      </div>
 	    </div>
 	  </div>
-	  <div>
-	    <iframe src="https://www.meteoblue.com/pt/tempo/widget/seeing?geoloc=detect&noground=0"
-	      frameborder="0" scrolling="NO" allowtransparency="true"
-	      sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
-	      style="width: 520px; height: 775px"></iframe>
-	    <div>
-	      <a href="https://www.meteoblue.com/pt/tempo/previsao/seeing?utm_source=seeing_widget&utm_medium=linkus&utm_content=seeing&utm_campaign=Weather%2BWidget"
-	         target="_blank" rel="noopener">meteoblue</a>
-	    </div>
-	  </div>
-	  <div>
-	    <iframe src="https://www.meteoblue.com/pt/tempo/mapas/widget?windAnimation=1&gust=1&satellite=1&cloudsAndPrecipitation=1&temperature=1&sunshine=1&extremeForecastIndex=1&geoloc=detect&tempunit=C&windunit=km%252Fh&lengthunit=metric&zoom=5&autowidth=manu"
-	      frameborder="0" scrolling="NO" allowtransparency="true"
-	      sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
-	      style="width: 500px; height: 720px"></iframe>
-	    <div>
-	      <a href="https://www.meteoblue.com/pt/tempo/mapas/index?utm_source=map_widget&utm_medium=linkus&utm_content=map&utm_campaign=Weather%2BWidget"
-	         target="_blank" rel="noopener">meteoblue</a>
-	    </div>
-	  </div>
-	</div>
 
-	<div class="astroapi-widgets">
-	  <div id="moon-phase"></div>
-	  <div id="star-chart"></div>
-	</div>
+      <!-- NOVOS widgets Lua e Mapa Celeste -->
+      <div class="inicio-widgets-row" style="display:flex; flex-wrap:wrap; gap:3rem; justify-content:center; margin: 2rem 0;">
+        <!-- Widget Lua -->
+        <div>
+          <!-- © wdisseny -->
+          <div id="contain_moon" style="text-align:center;padding-top:5px;padding-bottom:5px;">
+            <div style="font-weight:bold">A Lua hoje</div>
+            <div style="margin-top:-7px;margin-bottom:-15px;padding:30px;filter:drop-shadow(0 0 30px hsl(220,100%,100%))"></div>
+            <div>.</div>
+            <div style="font-size:small">.</div>
+          </div>
+          <script>
+          (function(){
+            var d=new Date().getDate();
+            var m=document.querySelectorAll("#contain_moon div");
+            var a=new XMLHttpRequest();
+            var url="https://www.icalendar37.net/lunar/api/?lang=pt&month="+(new Date().getMonth()+1)+"&year="+(new Date().getFullYear())+"&size=100&lightColor=rgb(255,255,255)&shadeColor=rgb(0,0,0)&t&LDZ="+new Date(new Date().getFullYear(),new Date().getMonth(),1)/1000+"";
+            m[1].style.height="100px";
+            a.onreadystatechange=function(){
+              if(a.readyState==4&&a.status==200){
+                var b=JSON.parse(a.responseText);
+                m[1].innerHTML=b.phase[d].svg;
+                if(typeof moon_widget_loaded=="function")moon_widget_loaded(b);
+                m[2].innerHTML=b.phase[d].npWidget;
+                m[3].innerHTML="Próxima fase<br>"+b.nextFullMoon
+              }
+            };
+            a.open("GET",url,true);
+            a.send()
+          })()
+          </script>
+        </div>
 
+        <!-- Widget Mapa Celeste (VirtualSky redondo) -->
+        <div>
+          <div style="font-weight:bold;text-align:center;margin-bottom:1rem;">Mapa Celeste agora</div>
+          <div id="starmap1" style="width:400px;height:400px; margin:auto;"></div>
+          <script>
+            $(document).ready(function() {
+              var planetarium = $.virtualsky({
+                id: 'starmap1',
+                width: 400,
+                height: 400,
+                projection: "stereo", // redondo
+                showconstellations: true,
+                showstarlabels: true,
+                showplanets: true,
+                showgridlines: true,
+                az: 180,
+                lat: 38.72, // Lisboa, muda se quiseres
+                long: -9.14,
+                negative: false,
+                lang: "pt"
+              });
+            });
+          </script>
+        </div>
+      </div>
 
-		<label for="solarObjects">Corpos do Sistema Solar:</label>
-		<select id="solarObjects" multiple>
-		  <option value="sun" selected>Sol</option>
-		  <option value="moon" selected>Lua</option>
-		  <option value="mercury">Mercúrio</option>
-		  <option value="venus">Vénus</option>
-		  <option value="mars">Marte</option>
-		  <option value="jupiter">Júpiter</option>
-		  <option value="saturn">Saturno</option>
-		  <option value="uranus">Úrano</option>
-		  <option value="neptune">Neptuno</option>
-		  <option value="pluto">Plutão</option>
-		</select>
-		<button id="btnConsultar">Consultar posições</button>
-		
-		<div id="resultadosApi"></div>
-	
+      <!-- FIM widgets -->
+
 	  <!-- Data -->
 	  <div class="inicio-row">
 	    <span id="inicio-date-label"></span>
@@ -120,29 +189,7 @@
 	
 	  <!-- Previsão Tempo -->
 	  <div id="inicio-previsao" class="inicio-section"></div>
-	  
-	  <!-- AstronomyAPI info -->
-	  <div id="inicio-astroapi" class="inicio-section" style="margin-top: 1.2rem;">
-		 <h3 id="inicio-astroapi-title"></h3>
-		 <div id="astroapi-dados"></div>
-		 <div id="astroapi-skymap" style="margin-top:1rem; text-align:center;"></div>
-      </div>
-
-	  <!-- Eventos astronómicos -->
-	  <div class="inicio-section">
-	    <h3 id="inicio-eventos-title"></h3>
-	    <ul id="eventos-list"></ul>
-	  </div>
-	
-	  <!-- Objetos visíveis -->
-	  <div class="inicio-section">
-	    <h3 id="inicio-objetos-title"></h3>
-	    <ul id="objetos-list"></ul>
-	  </div>
-	</div>
-
-		</section>
-	
+	  	
 	<!-- ==================================
      ABA “Objectos”
      ================================== -->
@@ -461,20 +508,166 @@
     </div>
     <!-- Liga ao JS do public -->
     <script src="/app.js" is:inline></script>
-		  
-		  <script>
-		  document.addEventListener("DOMContentLoaded", function () {
-		    var client = new AstronomyAPI({
-		      basicToken: "ODM0NDcyM2QtZGY1MC00MDdmLWE2NmUtODBiMTBkZmViMWY0OmQ4YWEyZmNiMDhkMTZhNDNiN2FlZjI5MmY2ZTRkNWExZTVmYjI1MDAxMjI0YjE2NjEwMmMxMjkxMDEwMTI1MWViOTU0ZTMwNWIxNjgwZGFiNTU4MWZlYjM4ZTAyZGNjMTMxZjNkYWRjYjYwMzUwODFhMjE0NWQ0MjhjOWJlNzU5MTRiMzg4NmUyMGY2NWMxZTFhOGQxYjRhMzk3ZDE1NWUzM2RmODU3MjJlNGQ3NGQ1NWQxN2M1OGI3MjFkMWQxNDAyNDVjYWI4M2Q3YzZlY2ZlZDY1YmNkN2M4YzlkN2Q2", // Substitui aqui!
-		    });
-		
-		    // Fase da Lua
-		    client.moonPhase();
-		
-		    // Mapa do céu (starchart)
-		    client.starChart();
-		  });
-		</script>
+	
+	<script>
+// Catálogo rápido (podes adicionar mais Messier/NGC depois)
+const messierCatalog = [
+  { id: "M31", name: "Andrómeda", ra: 0.712, dec: 41.269, mag: 3.4, dist: 2.5, dist_unit: "milhões ly" }, // M31
+  { id: "M42", name: "Orion Nebulosa", ra: 5.591, dec: -5.389, mag: 4.0, dist: 1350, dist_unit: "ly" }, // M42
+  { id: "M13", name: "Hércules Globular", ra: 16.698, dec: 36.467, mag: 5.8, dist: 25000, dist_unit: "ly" } // M13
+];
 
+// Lista planetas
+const planetsList = [
+  { id: "sun", name: "Sol" },
+  { id: "moon", name: "Lua" },
+  { id: "mercury", name: "Mercúrio" },
+  { id: "venus", name: "Vénus" },
+  { id: "mars", name: "Marte" },
+  { id: "jupiter", name: "Júpiter" },
+  { id: "saturn", name: "Saturno" },
+  { id: "uranus", name: "Úrano" },
+  { id: "neptune", name: "Neptuno" }
+];
+
+// Obtenção da data/hora/localização
+function getObsParams() {
+  const date = document.getElementById("obsDateTime").value ? new Date(document.getElementById("obsDateTime").value) : new Date();
+  const lat = parseFloat(document.getElementById("obsLat").value) || 38.72;
+  const lng = parseFloat(document.getElementById("obsLng").value) || -9.14;
+  return { date, lat, lng };
+}
+
+// Preenche dropdown com objetos visíveis
+function fillObsDropdown() {
+  const sel = document.getElementById("obsObjectSelect");
+  sel.innerHTML = "";
+  const params = getObsParams();
+  const now = params.date;
+  const lst = [];
+
+  // Planetas/Sol/Lua sempre visíveis (mas filtra por Altitude depois)
+  planetsList.forEach(p => lst.push({ id: p.id, name: p.name, type: "planet" }));
+
+  // Messier: todos (podes filtrar por magnitude/dist depois)
+  messierCatalog.forEach(m => lst.push({ id: m.id, name: m.name, type: "messier" }));
+
+  // Cria opções (mais tarde podemos filtrar os que estão abaixo do horizonte)
+  lst.forEach(o => {
+    const option = document.createElement("option");
+    option.value = o.id;
+    option.textContent = o.name + (o.type === "messier" ? ` (${o.id})` : "");
+    sel.appendChild(option);
+  });
+}
+
+// Detetar localização
+document.getElementById("obsGeoBtn").onclick = function() {
+  if ("geolocation" in navigator) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      document.getElementById("obsLat").value = pos.coords.latitude.toFixed(2);
+      document.getElementById("obsLng").value = pos.coords.longitude.toFixed(2);
+      fillObsDropdown();
+      showObsCard();
+    });
+  }
+};
+
+// Atualizar hora agora
+document.getElementById("obsRefreshBtn").onclick = function() {
+  document.getElementById("obsDateTime").value = new Date().toISOString().slice(0,16);
+  fillObsDropdown();
+  showObsCard();
+};
+
+// Atualiza lista de objetos quando muda a hora/local
+["obsDateTime", "obsLat", "obsLng"].forEach(id => {
+  document.getElementById(id).onchange = () => { fillObsDropdown(); showObsCard(); }
+});
+document.getElementById("obsObjectSelect").onchange = showObsCard;
+
+// Preenche cartão de dados
+function showObsCard() {
+  const { date, lat, lng } = getObsParams();
+  const objId = document.getElementById("obsObjectSelect").value;
+  let card = "";
+  // Planetas/Sol/Lua
+  const pl = planetsList.find(x => x.id === objId);
+  if (pl) {
+    try {
+      // JS Astronomia
+      const jd = window.astronomia.dateToJD(date);
+      let pos;
+      if (pl.id === "moon") {
+        pos = window.astronomia.moon.position(jd, lat, lng);
+        pos.mag = "-12.7";
+        pos.dist = (window.astronomia.moon.distance(jd) / 149597870.7).toFixed(2); // AU
+      } else if (pl.id === "sun") {
+        pos = window.astronomia.sun.position(jd, lat, lng);
+        pos.mag = "-26.7";
+        pos.dist = (window.astronomia.sun.distance(jd) / 149597870.7).toFixed(2);
+      } else {
+        pos = window.astronomia[pl.id].position(jd, lat, lng);
+        pos.mag = window.astronomia[pl.id].mag(jd);
+        pos.dist = (window.astronomia[pl.id].distance(jd) / 149597870.7).toFixed(2);
+      }
+      // Horas de nascimento/ocaso (simplificação)
+      // (Ideal: usar lib tipo suncalc ou rotina extra para rise/set)
+      card = `
+      <div style="background:#3b3b5b; padding:1.3rem 2rem; border-radius:1rem; box-shadow:0 0 8px #0008; max-width:340px;">
+        <div style="font-size:1.5em; font-weight:bold;">${pl.name}
+          <span style="float:right; color: gold; font-size:1em">Magnitude: <b>${pos.mag || "-"}</b></span>
+        </div>
+        <hr>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.3em 1.4em;">
+          <span>Nascimento:</span><span><b>-</b></span>
+          <span>Ocaso:</span><span><b>-</b></span>
+          <span>Altitude:</span><span><b>${(pos.alt || "-").toFixed(1)}º</b></span>
+          <span>Azimute:</span><span><b>${(pos.az || "-").toFixed(1)}º</b></span>
+          <span>RA:</span><span><b>${window.astronomia.coord.toHMS(pos.ra, "h")}</b></span>
+          <span>DEC:</span><span><b>${window.astronomia.coord.toDMS(pos.dec, "°")}</b></span>
+          <span>Distância:</span><span><b>${pos.dist} AU</b></span>
+        </div>
+      </div>`;
+    } catch (e) {
+      card = "<b>Erro a calcular efemérides.</b>";
+    }
+  } else {
+    // Messier/NGC
+    const m = messierCatalog.find(x => x.id === objId);
+    if (m) {
+      // Calcula Alt/Az para o objeto na data/localização
+      const ha = window.astronomia.sidereal.apparent0(date) + lng - (m.ra * 15);
+      const altaz = window.astronomia.coord.eqToHz(m.ra, m.dec, lat, ha);
+      card = `
+      <div style="background:#3b3b5b; padding:1.3rem 2rem; border-radius:1rem; box-shadow:0 0 8px #0008; max-width:340px;">
+        <div style="font-size:1.5em; font-weight:bold;">${m.name} <span style="color:#8fa">(${m.id})</span>
+          <span style="float:right; color: gold; font-size:1em">Magnitude: <b>${m.mag}</b></span>
+        </div>
+        <hr>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.3em 1.4em;">
+          <span>Altitude:</span><span><b>${(altaz.alt).toFixed(1)}º</b></span>
+          <span>Azimute:</span><span><b>${(altaz.az).toFixed(1)}º</b></span>
+          <span>RA:</span><span><b>${window.astronomia.coord.toHMS(m.ra, "h")}</b></span>
+          <span>DEC:</span><span><b>${window.astronomia.coord.toDMS(m.dec, "°")}</b></span>
+          <span>Distância:</span><span><b>${m.dist} ${m.dist_unit}</b></span>
+        </div>
+      </div>`;
+    }
+  }
+  document.getElementById("obsCard").innerHTML = card;
+}
+
+// INIT (define valores iniciais)
+(function(){
+  const dt = new Date();
+  document.getElementById("obsDateTime").value = dt.toISOString().slice(0,16);
+  document.getElementById("obsLat").value = 38.72;
+  document.getElementById("obsLng").value = -9.14;
+  fillObsDropdown();
+  showObsCard();
+})();
+</script>
+	
    </body>
 </html>
