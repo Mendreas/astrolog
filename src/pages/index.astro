@@ -9,7 +9,24 @@
     <title>AstroLog</title>
     <link rel="stylesheet" href="/style.css" is:inline />
     <link rel="manifest" href="/manifest.json" />
+	<script src="https://widgets.astronomyapi.com/cdn/astronomy-api-widgets.js"></script>
   </head>
+  
+  <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var client = new AstronomyAPI({
+      basicToken: "NDM3NTExMTMtNWU4Ny00YTc1LTk0NmYtMGIyMzJkYjJkNTFiOmQ4YWEyZmNiMDhkMTZhNDNiN2FlZjI5MmY2ZTRkNWExZTVmYjI1MDAxMjI0YjE2NjEwMmMxMjkxMDEwMTI1MWViOTU0ZTMwNWIxNjgwZGFiNTU4MWZlYjM4ZTAyZGNjMTMxZjNkYWRjYjYwMzUwODFhMjE0NWQ0MjhjOWJlNzU5OGEzOWY0YjA3YWQyNGZhNjgyN2NmYjdjNTZlNzIxMjQyZDFmNTRmYTc5N2MwMTIxYWEwNzRjZWVjNmRmNjIzMDc1OTJmN2NhNDU2NWYzZWFiY2Y1MWQ3NzZkYjU0NzE4Cg==", // Substitui aqui!
+    });
+
+    // Fase da Lua
+    client.moonPhase();
+
+    // Mapa do céu (starchart)
+    client.starChart();
+  });
+</script>
+
+  
   <body>
     <header>
       <h1>AstroLog</h1>
@@ -70,6 +87,11 @@
 	         target="_blank" rel="noopener">meteoblue</a>
 	    </div>
 	  </div>
+	</div>
+
+	<div class="astroapi-widgets">
+	  <div id="moon-phase"></div>
+	  <div id="star-chart"></div>
 	</div>
 
 

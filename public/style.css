@@ -886,3 +886,14 @@ body.light textarea {
   height: auto;
   margin-bottom: 0.3rem;
 }
+
+.astroapi-widgets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+}
+.astroapi-widgets > div {
+  min-width: 320px;
+  max-width: 100%;
+}
