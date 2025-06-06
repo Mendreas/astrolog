@@ -479,6 +479,44 @@
     <!-- Liga ao JS do public -->
     <script src="/app.js" is:inline></script>
 	
+	<script>
+fetch('/messier.json')
+  .then(resp => resp.json())
+  .then(data => {
+    window.messierCatalog = data; // podes usar noutros scripts
+    // Exemplo: preenche dropdown
+    const sel = document.getElementById('obsObjectSelect');
+    if (!sel) return;
+    data.forEach(obj => {
+      const opt = document.createElement('option');
+      opt.value = obj.id;
+      opt.textContent = `${obj.id} - ${obj.name}`;
+      sel.appendChild(opt);
+    });
+    // Mostra info ao selecionar
+    sel.onchange = () => {
+      const obj = data.find(o => o.id === sel.value);
+      if (obj) {
+        document.getElementById('obsCard').innerHTML = `
+          <b>${obj.id} - ${obj.name}</b><br>
+          Type: ${obj.type}<br>
+          Constellation: ${obj.constellation}<br>
+          RA: ${obj.ra}<br>
+          DEC: ${obj.dec}<br>
+          Magnitude: ${obj.magnitude}<br>
+          Distance: ${obj.distance_ly} light-years
+        `;
+      }
+    };
+    sel.onchange(); // Mostra o primeiro por defeito
+  })
+  .catch(err => {
+    document.getElementById('obsCard').textContent = 'Erro a carregar messier.json';
+    console.error(err);
+  });
+</script>
+
+	
 <script>
 const planetsList = [
   { id: "sun", name: "Sol" },
@@ -494,7 +532,7 @@ const planetsList = [
 
 // Carrega catálogo Messier da API pública
 let messierCatalog = [];
-fetch("https://osricdienda.com/messier/api/all.json")
+fetch("https://raw.githubusercontent.com/fasiha/messier-catalog/master/messier.json")
   .then(resp => resp.json())
   .then(data => {
     messierCatalog = data;
@@ -646,6 +684,8 @@ function formatDEC(dec) {
   document.getElementById("obsLng").value = -9.14;
 })();
 </script>
+
+
 	
    </body>
 </html>
