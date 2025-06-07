@@ -476,10 +476,13 @@
     </div>
 	
 	
-    <!-- Scripts finais (SEM inline!) -->
+	<!-- SCRIPTS EXTERNOS (ordem importa!) -->
+	<!-- Astronomy Engine (sempre primeiro, para Obs.js usar) -->
 	<script src="https://unpkg.com/astronomy-engine"></script>
-    <script src="/obs.js" is:inline></script>
-    <script src="/app.js" is:inline></script>
+	<!-- Obs.js: só lida com efemérides/planetas/Messier/Dropdown do modal -->
+	<script src="/Obs.js"></script>
+	<!-- app.js: TODO o core da app, tabs, observações, favoritos, etc -->
+	<script src="/app.js"></script>
 	
    </body>
 </html>
