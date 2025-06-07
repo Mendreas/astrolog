@@ -396,11 +396,23 @@ async function atualizarTabInicio() {
   dadosDiv.innerHTML = t.buscarTempo;
 
   try {
-    const observer = {
-      latitude: localState.coords.lat,
-      longitude: localState.coords.lon,
-      date: inicioData.toISOString().slice(0, 10)
-    };
+    // Previsão do tempo (podes chamar a função correta)
+    await mostrarPrevisaoTempo(localState.coords);
+
+    // Eventos astronómicos
+    mostrarEventosAstronomicos();
+
+    // Objetos visíveis
+    mostrarObjetosVisiveis();
+
+    // Podes adicionar outras atualizações, tipo sky map
+    skyDiv.innerHTML = "<em>(Mapa do céu/integração futura)</em>";
+  } catch (e) {
+    dadosDiv.innerHTML = `<span>${t.erroGeo}</span>`;
+    skyDiv.innerHTML = '';
+    console.error(e);
+  }
+}
 
 // ========== Localização Automática e Manual ==========
 async function obterLocalizacao() {
