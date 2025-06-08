@@ -2,43 +2,39 @@
 ---
 <!DOCTYPE html>
 <html lang="pt">
-  <head>
-    <meta charset="UTF-8" />
-    <title>AstroLog</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="stylesheet" href="/style.css" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AstroLog</title>
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="manifest" href="/manifest.json" />
   <style>
     body { font-family: 'Segoe UI', Arial, sans-serif; background: #16161d; color: #eee; margin: 0; }
-    header { display: flex; align-items: center; justify-content: space-between; background: #7e3ff2; padding: 0.6em 1.2em; }
-    header h1 { margin: 0; color: #fff; font-weight: bold; letter-spacing: 2px; }
+    header { background: #7e3ff2; padding: 0.6em 1.2em 0 1.2em; }
+    .header-main { display: flex; flex-direction: column; }
+    .header-row { display: flex; align-items: center; justify-content: space-between; gap: 0.6em; }
+    #logo { margin: 0; color: #fff; font-weight: bold; letter-spacing: 2px; }
     .header-controls { display: flex; gap: 0.6em; align-items: center; }
-    .header-controls input[type="text"] { border-radius: 10px; border: none; padding: 0.4em 0.8em; font-size: 1em; background: #232346; color: #fff; }
-    .header-controls button { border: none; border-radius: 8px; background: #222241; color: #fff; font-weight: bold; padding: 0.4em 0.9em; cursor: pointer; }
-    .header-controls button#toggleRedFilter { background: #2e2e50; }
+    .header-controls input[type="text"], #searchInput { border-radius: 10px; border: none; padding: 0.4em 0.8em; font-size: 1em; background: #232346; color: #fff; }
+    .header-controls button, .lang-btn, .red-btn, .add-btn { border: none; border-radius: 8px; background: #222241; color: #fff; font-weight: bold; padding: 0.4em 0.9em; cursor: pointer; }
+    .header-controls button#toggleRedFilter, .red-btn { background: #2e2e50; }
     .header-controls button.active { background: #2e2e50; color: gold; }
-
-    nav { display: flex; justify-content: center; gap: 0.3em; background: #222; padding: 0.5em 0; border-bottom: 2px solid #7e3ff2; }
-    nav button { background: #39396a; color: #fff; border: none; border-radius: 8px 8px 0 0; padding: 0.7em 2em; font-size: 1.05em; cursor: pointer; transition: 0.1s; }
-    nav button.active { background: #2e2e50; color: gold; font-weight: bold; border-bottom: 3px solid gold; }
+    nav.tabs-row { display: flex; justify-content: center; gap: 0.3em; background: #222; padding: 0.5em 0 0.1em 0; border-bottom: 2px solid #7e3ff2; }
+    .tab-btn { background: #39396a; color: #fff; border: none; border-radius: 8px 8px 0 0; padding: 0.7em 2em; font-size: 1.05em; cursor: pointer; transition: 0.1s; }
+    .tab-btn.active { background: #2e2e50; color: gold; font-weight: bold; border-bottom: 3px solid gold; }
     .content { max-width: 1200px; margin: 2em auto; padding: 0 1em; }
-
     .tab { display: none; min-height: 60vh; }
     .tab.active { display: block; animation: fadeIn 0.4s; }
     @keyframes fadeIn { from { opacity: 0;} to { opacity: 1; } }
-
     .filters { margin-bottom: 1em; display: flex; gap: 0.5em; flex-wrap: wrap; }
     .filters button { background: #39396a; border-radius: 12px; border: none; color: #fff; padding: 0.3em 1.1em; cursor: pointer; }
     .filters button.active { background: #2e2e50; color: gold; font-weight: bold; }
-
     .cards-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.2em; list-style: none; padding: 0; margin: 2em 0 0 0; }
     .cards-list li { background: #191922; border-radius: 18px; box-shadow: 0 2px 12px #0005; overflow: hidden; display: flex; flex-direction: column; align-items: center; padding: 1em 0 0.4em 0; }
     .card-img { width: 100%; display: flex; justify-content: center; align-items: center; min-height: 90px; }
     .card-img img { max-width: 90px; max-height: 90px; object-fit: contain; }
     .card-desc { margin: 0.5em 0 0.7em 0; text-align: center; color: #9fdfff; font-weight: 500; font-size: 1em; }
     @media (max-width: 800px) { .cards-list { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); } }
-
-    /* Observações */
     #observationsList { display: flex; flex-wrap: wrap; gap: 1em; }
     .observation-card { background: #232346; border-radius: 14px; box-shadow: 0 1px 8px #0006; padding: 1em; margin-bottom: 1em; flex: 1 1 320px; max-width: 360px; min-width: 250px; display: flex; flex-direction: column; align-items: flex-start; }
     .observation-card .title { font-weight: bold; font-size: 1.07em; margin-bottom: 0.4em; }
@@ -49,15 +45,9 @@
     .obs-btn.edit { background: #5d5d75; }
     .obs-btn.delete { background: #8d3c3c; }
     .obs-btn.favorite { background: #232346; color: gold; }
-
-    /* Meteoblue widgets responsivos */
     .meteoblue-widgets { display: flex; flex-wrap: wrap; gap: 2em; justify-content: center; align-items: flex-start; margin-top: 1em; }
     .meteoblue-widgets > div { min-width: 280px; }
-    @media (max-width: 1000px) {
-      .meteoblue-widgets { flex-direction: column; align-items: stretch; }
-    }
-
-    /* Modal */
+    @media (max-width: 1000px) { .meteoblue-widgets { flex-direction: column; align-items: stretch; } }
     .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #000a; display: none; align-items: center; justify-content: center; z-index: 2000; }
     .modal.active { display: flex; }
     .modal-content { background: #101021; color: #fff; border-radius: 18px; padding: 2em 1.5em 1.5em; min-width: 270px; max-width: 96vw; box-shadow: 0 2px 24px #000b; position: relative; }
@@ -66,54 +56,43 @@
     .modal-content button { margin-top: 1em; background: #39396a; color: #fff; border: none; border-radius: 8px; padding: 0.6em 1.2em; cursor: pointer; }
     .modal-content button[type=button] { background: #333; }
     .close { position: absolute; right: 18px; top: 10px; font-size: 2em; cursor: pointer; color: #fff; }
-
-    /* Red Filter for Config tab only */
     #configFilterControls { display: flex; align-items: center; gap: 1.5em; margin-top: 2em; }
     #configFilterControls label { font-size: 1.03em; }
     #configFilterControls input[type="checkbox"] { accent-color: #c00; }
     #configFilterControls input[type="range"] { width: 120px; }
     .red-filter { filter: brightness(0.85) sepia(1) hue-rotate(-30deg) saturate(7) brightness(0.68) contrast(1.14); }
-    /* Footer */
     footer { background: #222; color: #eee; display: flex; align-items: center; gap: 1em; justify-content: flex-end; padding: 0.7em 1em; font-size: 0.96em; }
     footer .app-credit { margin-left: auto; color: #aaa; font-size: 0.96em; }
-    /* Pequenas adaptações mobile */
     @media (max-width: 700px) {
-      header, .header-controls { flex-direction: column; align-items: stretch; gap: 0.6em; }
-      nav { flex-direction: column; gap: 0.2em; }
+      .header-row, .header-controls { flex-direction: column; align-items: stretch; gap: 0.6em; }
+      nav.tabs-row { flex-direction: column; gap: 0.2em; }
       .content { padding: 0 0.3em; }
       .meteoblue-widgets { flex-direction: column; gap: 1em; }
     }
   </style>
 </head>
-  <body>
-    <!-- LINHA 1: Header topo -->
-    <header class="header-main">
-      <div class="header-row">
-        <h1 id="logo">AstroLog</h1>
+<body>
+  <!-- LINHA 1: Header topo -->
+  <header class="header-main">
+    <div class="header-row">
+      <h1 id="logo">AstroLog</h1>
+      <div class="header-controls">
         <input type="text" id="searchInput" placeholder="Pesquisar observações..." />
         <button id="toggleLanguage" class="lang-btn">EN</button>
         <button id="toggleRedFilter" class="red-btn" title="Filtro vermelho">🔴</button>
         <button id="addObservationBtn" class="add-btn" title="Adicionar observação">＋</button>
       </div>
-      <!-- LINHA 2: Tabs -->
-      <nav class="tabs-row">
-        <button class="tab-btn active" data-tab="inicio" id="tabBtn-inicio">Início</button>
-        <button class="tab-btn" data-tab="objectos" id="tabBtn-objectos">Objectos</button>
-        <button class="tab-btn" data-tab="recursos" id="tabBtn-recursos">Recursos</button>
-        <button class="tab-btn" data-tab="links" id="tabBtn-links">Links Úteis</button>
-        <button class="tab-btn" data-tab="calendario" id="tabBtn-calendario">Calendário</button>
-        <button class="tab-btn" data-tab="configuracoes" id="tabBtn-configuracoes">Configurações</button>
-      </nav>
-    </header>
-
-  <nav>
-    <button class="active" data-tab="inicio">Início</button>
-    <button data-tab="objectos">Objectos</button>
-    <button data-tab="recursos">Recursos</button>
-    <button data-tab="links">Links Úteis</button>
-    <button data-tab="calendario">Calendário</button>
-    <button data-tab="configuracoes">Configurações</button>
-  </nav>
+    </div>
+    <!-- LINHA 2: Tabs -->
+    <nav class="tabs-row">
+      <button class="tab-btn active" data-tab="inicio" id="tabBtn-inicio">Início</button>
+      <button class="tab-btn" data-tab="objectos" id="tabBtn-objectos">Objectos</button>
+      <button class="tab-btn" data-tab="recursos" id="tabBtn-recursos">Recursos</button>
+      <button class="tab-btn" data-tab="links" id="tabBtn-links">Links Úteis</button>
+      <button class="tab-btn" data-tab="calendario" id="tabBtn-calendario">Calendário</button>
+      <button class="tab-btn" data-tab="configuracoes" id="tabBtn-configuracoes">Configurações</button>
+    </nav>
+  </header>
 
   <div class="content">
 
@@ -183,7 +162,6 @@
     <!-- RECURSOS -->
     <section id="tab-recursos" class="tab">
       <ul class="cards-list">
-        <!-- Recursos copiados das versões anteriores -->
         <li>
           <a href="https://science.nasa.gov/mission/hubble/science/explore-the-night-sky/hubble-messier-catalog/" target="_blank">
             <div class="card-img"><img src="https://upload.wikimedia.org/wikipedia/commons/8/81/Whirlpool_%28M51%29.jpg" alt="Messier"></div>
@@ -208,7 +186,6 @@
     <!-- LINKS ÚTEIS -->
     <section id="tab-links" class="tab">
       <ul class="cards-list">
-        <!-- Os links copiados do index.html fornecido -->
         <li><a href="https://ptspace.pt/pt/home/" target="_blank"><div class="card-img"><img src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Portugal_Space_Agency_Logo.png" alt="AEP"></div><div class="card-desc">AEP</div></a></li>
         <li><a href="https://www.esa.int/" target="_blank"><div class="card-img"><img src="https://upload.wikimedia.org/wikipedia/commons/8/80/ESA_logo.svg" alt="ESA"></div><div class="card-desc">ESA</div></a></li>
         <li><a href="https://www.nasa.gov/" target="_blank"><div class="card-img"><img src="https://upload.wikimedia.org/wikipedia/commons/a/a3/NASA_Worm_logo.svg" alt="NASA"></div><div class="card-desc">NASA</div></a></li>
@@ -253,60 +230,60 @@
         <label for="redFilterIntensity">Intensidade do Filtro</label>
         <input type="range" id="redFilterIntensity" min="0" max="100" value="50" />
       </div>
-      </section>
-    </main>
+    </section>
+  </div>
 
-    <!-- Modal de adicionar observação -->
-    <div id="addObservationModal" class="modal">
-      <div class="modal-content">
-        <span id="closeAddModal" class="close">&times;</span>
-        <form id="addObservationForm">
-          <h2 id="addObsTitle">Adicionar Observação</h2>
-          <label id="labelNomeObj">Nome do objeto</label>
-          <input type="text" id="inputNome" name="nome" required />
-          <label id="labelTipo">Tipo</label>
-          <select id="inputTipo" name="tipo">
-            <option value="Estrela">Estrela</option>
-            <option value="Galáxia">Galáxia</option>
-            <option value="Aglomerado">Aglomerado</option>
-            <option value="Nebulosa">Nebulosa</option>
-            <option value="Sistema Solar">Sistema Solar</option>
-            <option value="Outro">Outro</option>
-          </select>
-          <label id="labelData">Data da observação</label>
-          <input type="date" id="inputData" name="data" required />
-          <label id="labelLocalizacao">Localização</label>
-          <input type="text" id="inputLocal" name="local" />
-          <label id="labelRA">RA</label>
-          <input type="text" id="inputRA" name="ra" />
-          <label id="labelDEC">DEC</label>
-          <input type="text" id="inputDEC" name="dec" />
-          <label id="labelMagnitude">Magnitude</label>
-          <input type="number" id="inputMagnitude" name="magnitude" />
-          <label id="labelDistancia">Distância</label>
-          <input type="text" id="inputDistancia" name="distancia" />
-          <select id="inputUnidadeDistancia" name="unidadeDistancia">
-            <option value="ly">ly</option>
-            <option value="AU">AU</option>
-          </select>
-          <label id="labelDescricao">Descrição</label>
-          <textarea id="inputDescricao" name="descricao"></textarea>
-          <label id="labelFavorito"><input type="checkbox" id="inputFavorito" name="favorito" /> Favorito</label>
-          <label id="labelImagem">Imagem<input type="file" id="inputImagem" name="imagem" accept="image/*" /></label>
-          <div>
-            <button type="submit" id="btnSave">Guardar</button>
-            <button type="button" id="btnCancel">Cancelar</button>
-          </div>
-          <div id="addSuccessMsg" style="display:none"></div>
-        </form>
-      </div>
+  <!-- Modal de adicionar observação -->
+  <div id="addObservationModal" class="modal">
+    <div class="modal-content">
+      <span id="closeAddModal" class="close">&times;</span>
+      <form id="addObservationForm">
+        <h2 id="addObsTitle">Adicionar Observação</h2>
+        <label id="labelNomeObj">Nome do objeto</label>
+        <input type="text" id="inputNome" name="nome" required />
+        <label id="labelTipo">Tipo</label>
+        <select id="inputTipo" name="tipo">
+          <option value="Estrela">Estrela</option>
+          <option value="Galáxia">Galáxia</option>
+          <option value="Aglomerado">Aglomerado</option>
+          <option value="Nebulosa">Nebulosa</option>
+          <option value="Sistema Solar">Sistema Solar</option>
+          <option value="Outro">Outro</option>
+        </select>
+        <label id="labelData">Data da observação</label>
+        <input type="date" id="inputData" name="data" required />
+        <label id="labelLocalizacao">Localização</label>
+        <input type="text" id="inputLocal" name="local" />
+        <label id="labelRA">RA</label>
+        <input type="text" id="inputRA" name="ra" />
+        <label id="labelDEC">DEC</label>
+        <input type="text" id="inputDEC" name="dec" />
+        <label id="labelMagnitude">Magnitude</label>
+        <input type="number" id="inputMagnitude" name="magnitude" />
+        <label id="labelDistancia">Distância</label>
+        <input type="text" id="inputDistancia" name="distancia" />
+        <select id="inputUnidadeDistancia" name="unidadeDistancia">
+          <option value="ly">ly</option>
+          <option value="AU">AU</option>
+        </select>
+        <label id="labelDescricao">Descrição</label>
+        <textarea id="inputDescricao" name="descricao"></textarea>
+        <label id="labelFavorito"><input type="checkbox" id="inputFavorito" name="favorito" /> Favorito</label>
+        <label id="labelImagem">Imagem<input type="file" id="inputImagem" name="imagem" accept="image/*" /></label>
+        <div>
+          <button type="submit" id="btnSave">Guardar</button>
+          <button type="button" id="btnCancel">Cancelar</button>
+        </div>
+        <div id="addSuccessMsg" style="display:none"></div>
+      </form>
     </div>
+  </div>
 
   <footer>
     <span class="app-credit">AstroLog © 2024</span>
   </footer>
 
-  <script defer src="app.js" is:inline></script>
-  <script defer src="/js/obs.js" is:inline></script>
+  <script defer src="/app.js"></script>
+  <script defer src="/js/obs.js"></script>
 </body>
 </html>
