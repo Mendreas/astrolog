@@ -705,6 +705,18 @@ if (form) {
 
   // ======== FIM DO MODAL DE ADICIONAR OBSERVAÇÃO ========
 
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    // Remove ativo de todos os botões e conteúdos
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    // Ativa o botão e a tab clicada
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+
   // ======== Botão de download de backup ========
   const backupBtn = document.getElementById('downloadBackup');
   if (backupBtn) {
