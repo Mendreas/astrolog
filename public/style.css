@@ -951,3 +951,116 @@ body.light textarea {
   gap: 2rem;
 }
 .widget-meteo, .widget-seeing { min-width: 380px; }
+
+#obsFinderBox {
+  background: #222241;
+  border-radius: 1em;
+  padding: 1.2em 2em;
+  margin: 2em 0 2em 0;
+  color: #fff;
+  box-shadow: 0 2px 12px #0004;
+  max-width: 550px;
+}
+
+#obsFinderBox label {
+  margin-right: 0.6em;
+  font-weight: 500;
+}
+
+#obsFinderBox input[type="number"], 
+#obsFinderBox input[type="datetime-local"] {
+  background: #181818;
+  color: #fff;
+  border: 1px solid #39396a;
+  border-radius: 6px;
+  padding: 0.3em 0.8em;
+  margin-right: 1em;
+  width: 110px;
+}
+
+#obsFinderBox select {
+  background: #232346;
+  color: #fff;
+  border: 1px solid #39396a;
+  border-radius: 6px;
+  padding: 0.4em 1em;
+  margin-top: 0.6em;
+  min-width: 260px;
+  font-size: 1em;
+}
+
+#obsFinderBox button {
+  background: #39396a;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  padding: 0.3em 0.8em;
+  margin-left: 0.5em;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+#obsFinderBox button:hover {
+  background: #7b2cbf;
+}
+
+#obsCard {
+  margin-top: 1.4em;
+}
+
+#obsCard > div {
+  background: #39396a;
+  padding: 1.2em 1.7em;
+  border-radius: 1em;
+  color: #fff;
+  max-width: 420px;
+  box-shadow: 0 2px 12px #0007;
+  margin-top: 0.7em;
+  transition: background 0.3s, color 0.3s;
+}
+body.light #obsCard > div {
+  background: #e7e5fd;
+  color: #1a1338;
+}
+body.red-filter #obsCard > div {
+  background: #2a0500 !important;
+  color: #ff5555 !important;
+  border: 1px solid #550000 !important;
+}
+
+input[type="number"], input[type="datetime-local"], select {
+  outline: none;
+  box-sizing: border-box;
+  transition: border 0.2s, background 0.2s;
+}
+input[type="number"]:focus, input[type="datetime-local"]:focus, select:focus {
+  border: 1.5px solid #7b2cbf;
+  background: #2a2a42;
+}
+
+@media (max-width: 650px) {
+  #obsFinderBox {
+    padding: 1em 0.5em;
+    max-width: 98vw;
+  }
+  #obsFinderBox label, 
+  #obsFinderBox input,
+  #obsFinderBox button {
+    display: block;
+    width: 100%;
+    margin: 0.5em 0;
+  }
+  #obsFinderBox select {
+    min-width: unset;
+    width: 100%;
+  }
+}
+
+select, option {
+  color-scheme: dark;
+}
+body.red-filter select, body.red-filter option {
+  background: #2a0500 !important;
+  color: #ff5555 !important;
+}

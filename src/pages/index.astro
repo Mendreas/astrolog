@@ -112,6 +112,24 @@
             <input id="inicio-date-input" type="date" style="display:none;" />
           </div>
         </div>
+		
+		<div id="obsFinderBox" style="margin: 2em 0; background: #222241; border-radius: 1em; padding: 1em 1.5em;">
+		  <label for="obsDateTime">Data/Hora:</label>
+		  <input id="obsDateTime" type="datetime-local" style="margin-right:1em;"/>
+		  <label for="obsLat">Lat:</label>
+		  <input id="obsLat" type="number" step="0.01" style="width: 90px;" />
+		  <label for="obsLng">Lng:</label>
+		  <input id="obsLng" type="number" step="0.01" style="width: 90px;" />
+		  <button id="obsGeoBtn" title="Usar localização atual">📍</button>
+		  <button id="obsRefreshBtn" title="Agora">Agora</button>
+		  <br>
+		  <label for="obsObjectSelect" style="margin-top: 1em;">Objetos observáveis nas próximas 24h:</label>
+		  <select id="obsObjectSelect" style="min-width:250px"></select>
+		  <button id="obsShowDetailsBtn">Detalhes</button>
+		  <div id="obsCard" style="margin-top: 1em;"></div>
+		</div>
+
+		
         <div class="meteoblue-widgets">
 	    <!-- widgets Meteoblue mantidos -->
 	    <div>

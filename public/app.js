@@ -549,6 +549,7 @@ function closeAddForm() {
  * Renderiza cartões para cada observação conforme filtros e pesquisa.
  */
 function renderObservacoes() {
+  const obsList = document.getElementById('observationsList');
   if (!obsList) return;
   obsList.innerHTML = '';
   let list = [...observacoes];
@@ -867,7 +868,7 @@ function translateUI() {
   document.querySelector('[data-filter="recentes"]').textContent = t.recent;
   document.querySelector('[data-filter="favoritos"]').textContent = t.favorites;
   document.getElementById('filterByType').textContent = t.filterType;
-  document.getElementById('toggleLanguage').textContent = currentLang === 'pt' ? 'EN' : 'PT';
+  document.getElementById('langToggle').textContent = currentLang === 'pt' ? 'EN' : 'PT';
 
   // Modal Adicionar Observação
   document.getElementById('addObsTitle').textContent = t.addObsTitle;

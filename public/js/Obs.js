@@ -39,51 +39,66 @@ async function fillObsDropdownVisible() {
   if (!sel) return;
   sel.innerHTML = "";
 
-  const date = document.getElementById("obsDateTime").value ? new Date(document.getElementById("obsDateTime").value) : new Date();
+  const now = document.getElementById("obsDateTime").value 
+    ? new Date(document.getElementById("obsDateTime").value) : new Date();
   const lat = parseFloat(document.getElementById("obsLat").value) || 38.72;
   const lng = parseFloat(document.getElementById("obsLng").value) || -9.14;
   const observer = new Astronomy.Observer(lat, lng, 0);
 
+  // Helper: verifica se o objeto estará acima do horizonte nas próximas 24h
+  function isVisibleInNext24h(body, ra, dec) {
+    for (let h = 0; h < 24; h += 1) {
+      const t = new Date(now.getTime() + h*3600*1000);
+      let alt = 0;
+      try {
+        if (body) {
+          const eq = Astronomy.Equator(Astronomy.Body[body], t, observer, true, true);
+          const hor = Astronomy.Horizontal(t, observer, eq.ra, eq.dec, "normal");
+          alt = hor.altitude;
+        } else {
+          const hor = Astronomy.Horizontal(t, observer, ra, dec, "normal");
+          alt = hor.altitude;
+        }
+        if (alt > 0) return true;
+      } catch (e) {}
+    }
+    return false;
+  }
+
   // PLANETAS/LUA/SOL
   for (const p of planetsList) {
-    try {
-      const eq = Astronomy.Equator(Astronomy.Body[p.body], date, observer, true, true);
-      const hor = Astronomy.Horizontal(date, observer, eq.ra, eq.dec, "normal");
-      if (hor.altitude > 0) {
-        const opt = document.createElement("option");
-        opt.value = p.id;
-        opt.textContent = `${p.name}`;
-        sel.appendChild(opt);
-      }
-    } catch {}
+    if (isVisibleInNext24h(p.body)) {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = p.name;
+      sel.appendChild(opt);
+    }
   }
 
   // MESSIER
   if (messierCatalog && messierCatalog.length > 0) {
     for (const obj of messierCatalog) {
-      try {
-        const ra = parseFloat(obj.ra);
-        const dec = parseFloat(obj.dec);
-        const hor = Astronomy.Horizontal(date, observer, ra, dec, "normal");
-        if (hor.altitude > 0) {
-          const opt = document.createElement("option");
-          opt.value = obj.id || obj.messier;
-          opt.textContent = `${obj.messier} - ${obj.name}`;
-          sel.appendChild(opt);
-        }
-      } catch {}
+      const ra = parseFloat(obj.ra);
+      const dec = parseFloat(obj.dec);
+      if (isVisibleInNext24h(null, ra, dec)) {
+        const opt = document.createElement("option");
+        opt.value = obj.id || obj.messier;
+        opt.textContent = `${obj.id} - ${obj.name}`;
+        sel.appendChild(opt);
+      }
     }
   }
 
   if (sel.options.length === 0) {
     const opt = document.createElement("option");
-    opt.textContent = "Nenhum objeto visível agora";
+    opt.textContent = "Nenhum objeto visível nas próximas 24h";
     opt.disabled = true;
     sel.appendChild(opt);
   }
 
   showObsCard();
 }
+
 
 // ================================
 // EVENTOS
