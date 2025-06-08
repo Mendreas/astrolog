@@ -361,69 +361,80 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Botão "+" para adicionar observação (abre modal)
-  const addBtn = document.getElementById('addObservationBtn');
-  const modal = document.getElementById('addObservationModal');
-  const closeModalBtn = document.getElementById('closeAddModal');
-  const cancelBtn = document.getElementById('btnCancel');
-  const form = document.getElementById('addObservationForm');
-  const successMsg = document.getElementById('addSuccessMsg');
-  function closeAddForm() {
-    if (form) form.reset();
-    if (modal) modal.style.display = 'none';
-    if (successMsg) successMsg.style.display = 'none';
-    document.body.style.overflow = '';
+const addBtn = document.getElementById('addObservationBtn');
+const modal = document.getElementById('addObservationModal');
+const closeModalBtn = document.getElementById('closeAddModal');
+const cancelBtn = document.getElementById('btnCancel');
+const form = document.getElementById('addObservationForm');
+const successMsg = document.getElementById('addSuccessMsg');
+
+// Função para fechar e limpar o modal/adicionar
+function closeAddForm() {
+  if (form) form.reset();
+  if (modal) modal.style.display = 'none';
+  if (successMsg) successMsg.style.display = 'none';
+  document.body.style.overflow = ''; // Permite scroll novamente
+}
+
+// Evento para abrir o modal ao clicar no "+"
+if (addBtn) addBtn.addEventListener('click', () => {
+  if (modal) {
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden'; // Previne scroll enquanto modal aberto
   }
-  if (addBtn) addBtn.addEventListener('click', () => {
-    if (modal) {
-      modal.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
+});
+
+// Fecha modal ao clicar no X, no botão cancelar, ou fora da janela
+if (closeModalBtn) closeModalBtn.addEventListener('click', closeAddForm);
+if (cancelBtn) cancelBtn.addEventListener('click', closeAddForm);
+if (modal) {
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeAddForm();
+  });
+}
+
+// Submissão do formulário para adicionar observação
+if (form) {
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const obs = {
+      id: Date.now(),
+      nome: formData.get('nome'),
+      tipo: formData.get('tipo'),
+      data: formData.get('data'),
+      local: formData.get('local'),
+      ra: formData.get('ra'),
+      dec: formData.get('dec'),
+      magnitude: formData.get('magnitude'),
+      distancia: formData.get('distancia'),
+      unidadeDistancia: formData.get('unidadeDistancia'),
+      descricao: formData.get('descricao'),
+      favorito: !!formData.get('favorito')
+    };
+    const file = formData.get('imagem');
+    const saveObs = async () => {
+      await saveObservacao(obs);
+      observacoes = await getAllObservacoes();
+      renderObservacoes();
+      atualizarBackupJSON();
+      if (successMsg) {
+        successMsg.style.display = 'block';
+        successMsg.textContent = i18n[currentLang].saveSuccess;
+      }
+      closeAddForm();
+    };
+    if (file && file.size > 0) {
+      const reader = new FileReader();
+      reader.onload = async () => { obs.imagem = reader.result; await saveObs(); };
+      reader.onerror = async () => { alert("Erro ao carregar imagem."); await saveObs(); };
+      reader.readAsDataURL(file);
+    } else {
+      await saveObs();
     }
   });
-  if (closeModalBtn) closeModalBtn.addEventListener('click', closeAddForm);
-  if (cancelBtn) cancelBtn.addEventListener('click', closeAddForm);
-  if (modal) modal.addEventListener('click', (e) => { if (e.target === modal) closeAddForm(); });
+}
 
-  // Submissão do formulário para adicionar observação
-  if (form) {
-    form.addEventListener('submit', async function (e) {
-      e.preventDefault();
-      const formData = new FormData(form);
-      const obs = {
-        id: Date.now(),
-        nome: formData.get('nome'),
-        tipo: formData.get('tipo'),
-        data: formData.get('data'),
-        local: formData.get('local'),
-        ra: formData.get('ra'),
-        dec: formData.get('dec'),
-        magnitude: formData.get('magnitude'),
-        distancia: formData.get('distancia'),
-        unidadeDistancia: formData.get('unidadeDistancia'),
-        descricao: formData.get('descricao'),
-        favorito: !!formData.get('favorito')
-      };
-      const file = formData.get('imagem');
-      const saveObs = async () => {
-        await saveObservacao(obs);
-        observacoes = await getAllObservacoes();
-        renderObservacoes();
-        atualizarBackupJSON();
-        if (successMsg) {
-          successMsg.style.display = 'block';
-          successMsg.textContent = i18n[currentLang].saveSuccess;
-        }
-        closeAddForm();
-      };
-      if (file && file.size > 0) {
-        const reader = new FileReader();
-        reader.onload = async () => { obs.imagem = reader.result; await saveObs(); };
-        reader.onerror = async () => { alert("Erro ao carregar imagem."); await saveObs(); };
-        reader.readAsDataURL(file);
-      } else {
-        await saveObs();
-      }
-    });
-  }
 
   // Exportar observações (JSON)
   const exportBtn = document.getElementById('exportJson');
@@ -776,18 +787,22 @@ function renderCalendario() {
   const displaySpan = document.getElementById('calendarMonthYearDisplay');
   const container = document.getElementById('calendarContainer');
   const results = document.getElementById('calendarResults');
-  if (!title || !container || !results) return;
+  const header = document.getElementById('calendarHeader');
+  if (!title || !container || !results || !header) return;
 
   container.innerHTML = '';
   results.innerHTML = '';
 
+  // Cabeçalho com setas (certifica-te que existe em index.html)
+  header.innerHTML = `
+    <button id="calendarPrev">&lt;</button>
+    <span id="calendarMonthYear">${capitalize(i18n[currentLang].monthNames[calendarioMes])} ${calendarioAno}</span>
+    <button id="calendarNext">&gt;</button>
+  `;
+
   // Dias do mês
   const firstDay = new Date(calendarioAno, calendarioMes, 1).getDay();
   const daysInMonth = new Date(calendarioAno, calendarioMes + 1, 0).getDate();
-  const nomeMes = i18n[currentLang].monthNames[calendarioMes];
-  const textoMesAno = `${capitalize(nomeMes)} ${calendarioAno}`;
-  title.textContent = textoMesAno;
-  if (displaySpan) displaySpan.textContent = textoMesAno;
 
   // Conjunto de datas com observações
   const diasComObservacoes = new Set(
@@ -811,14 +826,34 @@ function renderCalendario() {
     dayDiv.textContent = d;
     if (diasComObservacoes.has(dateStr)) {
       dayDiv.classList.add('highlight');
-      dayDiv.addEventListener('click', () => mostrarObservacoesDoDia(dateStr));
     }
+    // Clicar num dia mostra observações desse dia
+    dayDiv.addEventListener('click', () => mostrarObservacoesDoDia(dateStr));
     container.appendChild(dayDiv);
   }
+
+  // Listeners para mudar de mês
+  document.getElementById('calendarPrev').onclick = () => {
+    calendarioMes--;
+    if (calendarioMes < 0) {
+      calendarioMes = 11;
+      calendarioAno--;
+    }
+    renderCalendario();
+  };
+  document.getElementById('calendarNext').onclick = () => {
+    calendarioMes++;
+    if (calendarioMes > 11) {
+      calendarioMes = 0;
+      calendarioAno++;
+    }
+    renderCalendario();
+  };
 }
 
+// Mostrar observações do dia selecionado
 function mostrarObservacoesDoDia(dataISO) {
-  const lista = observacoes.filter(o => o.data.startsWith(dataISO));
+  const lista = observacoes.filter(o => normalizarDataLocal(o.data) === dataISO);
   const container = document.getElementById('calendarResults');
   if (!container) return;
   if (!lista.length) {
@@ -831,6 +866,7 @@ function mostrarObservacoesDoDia(dataISO) {
       ${lista.map(o => `<li>${getIcon(o.tipo)} ${o.nome}</li>`).join('')}
     </ul>`;
 }
+
 
 // Ícone do tipo de objeto
 function getIcon(tipo) {
@@ -845,7 +881,8 @@ function getIcon(tipo) {
  * ========== UTILITÁRIOS E TRADUÇÃO ==========
  */
 function normalizarDataLocal(data) {
-  return new Date(data).toLocaleDateString('sv-SE');
+  // Garante que devolve sempre YYYY-MM-DD
+  return new Date(data).toISOString().slice(0, 10);
 }
 function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);

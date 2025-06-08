@@ -1019,3 +1019,62 @@ button:focus-visible, select:focus-visible {
 .tab-content.active {
   display: block;
 }
+
+/* ========== ALINHAR CONTEÚDO INÍCIO À ESQUERDA ========== */
+#tab-inicio-content,
+#tab-inicio {
+  align-items: flex-start !important;
+  text-align: left !important;
+}
+.astroapi-widgets {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  gap: 2rem !important;
+  justify-content: flex-start !important;
+  align-items: flex-start !important;
+  width: 100%;
+}
+
+/* ========== CAIXA DE RECURSOS AJUSTADA ========== */
+#tab-recursos-content .cards-list,
+#tab-recursos ul.cards-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: flex-start;
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  max-width: 1020px; /* 3 x 300px + gaps */
+}
+#tab-recursos ul.cards-list li {
+  min-width: 280px;
+  max-width: 320px;
+  flex: 0 1 300px;
+}
+
+/* ========== CORRIGIR TITULO “LINKS ÚTEIS” EM HORIZONTAL ========== */
+#tab-links-content h2, #tab-links-content .tab-title, .tab-title {
+  white-space: nowrap !important;
+  writing-mode: initial !important;
+  text-align: left !important;
+  font-size: 1.2rem;
+  margin-bottom: 1.2rem;
+}
+
+/* ========== BARRA DE CONTROLOS NA MESMA LINHA DAS TABS ========== */
+.header-controls {
+  flex-direction: row !important;
+  align-items: center !important;
+  margin-left: 1.2rem !important;
+}
+@media (max-width: 900px) {
+  .header-controls { flex-wrap: wrap !important; }
+}
+
+/* ========== BOTÃO "+" AJUSTE ========== */
+#addObservationBtn {
+  vertical-align: middle;
+  margin-left: 0.8rem;
+}
