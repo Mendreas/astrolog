@@ -77,15 +77,15 @@
     </header>
 
     <!-- Barra Superior: Linha 2 (Tabs + botoes) -->
-	<nav class="main-navbar" style="display: flex; align-items: center; justify-content: space-between; background: #1a1a1a;">
-	  <ul class="nav-tabs" style="display: flex; flex-direction: row; gap: 0.3em; margin: 0; padding: 0;">
-	    <li class="tab-btn active" data-tab="tab-inicio">Início</li>
-	    <li class="tab-btn" data-tab="tab-objectos">Objectos</li>
-	    <li class="tab-btn" data-tab="tab-recursos">Recursos</li>
-	    <li class="tab-btn" data-tab="tab-links">Links Úteis</li>
-	    <li class="tab-btn" data-tab="tab-calendario">Calendário</li>
-	    <li class="tab-btn" data-tab="tab-config">Configurações</li>
-	  </ul>
+  <nav class="tabs-row">
+    <ul class="nav-tabs">
+      <li><button class="tab-btn active" data-tab="inicio">Início</button></li>
+      <li><button class="tab-btn" data-tab="objectos">Objectos</button></li>
+      <li><button class="tab-btn" data-tab="recursos">Recursos</button></li>
+      <li><button class="tab-btn" data-tab="links">Links Úteis</button></li>
+      <li><button class="tab-btn" data-tab="calendario">Calendário</button></li>
+      <li><button class="tab-btn" data-tab="config">Configurações</button></li>
+    </ul>
 	  <div class="header-controls">
 	    <input id="searchInput" type="text" placeholder="Pesquisar observações..." />
 	    <button id="langToggle" class="lang-btn">EN</button>
@@ -99,9 +99,8 @@
 
     <!-- INÍCIO -->
     <section id="tab-inicio-content" class="tab-content active">
-      <h2 id="inicio-titulo">Mapa do céu</h2>
+      <h2 id="inicio-astroapi-title">Mapa do céu</h2>
       <div id="inicio-astroapi">
-        <!-- Localização, data, widgets, eventos, objetos -->
         <div style="display:flex; flex-direction:column; gap:0.6em;">
           <div>
             <span id="inicio-localidade">Lisboa, Portugal</span>
@@ -113,7 +112,7 @@
             <input id="inicio-date-input" type="date" style="display:none;" />
           </div>
         </div>
-	    <div class="meteoblue-widgets">
+        <div class="meteoblue-widgets">
 	    <!-- widgets Meteoblue mantidos -->
 	    <div>
 	      <iframe src="https://www.meteoblue.com/pt/tempo/widget/three?geoloc=detect&nocurrent=0&noforecast=0&days=4&tempunit=CELSIUS&windunit=KILOMETER_PER_HOUR&layout=image"
@@ -147,6 +146,8 @@
           </div>
         </div>
         <!-- Eventos e objetos -->
+        </div>
+        <div id="inicio-previsao"></div>
         <div>
           <h3 id="inicio-eventos-title">Eventos astronómicos</h3>
           <ul id="eventos-list"></ul>
@@ -155,28 +156,33 @@
           <h3 id="inicio-objetos-title">Objetos visíveis</h3>
           <ul id="objetos-list"></ul>
         </div>
+        <!-- Autocomplete manual localização -->
+        <div id="local-autocomplete-wrapper" style="display:none; background: #1c1c33; padding: 1em; border-radius: 12px;">
+          <input id="local-autocomplete" placeholder="Pesquisar localidade..." autocomplete="off" />
+          <div id="autocomplete-results"></div>
+        </div>
       </div>
     </section>
 
     <!-- OBJECTOS -->
-		<section id="tab-objectos-content" class="tab-content">
-		  <h2 class="section-title">Objectos Observados</h2>
-		  <div class="filters">
-		    <button data-filter="todos" class="active">Todos</button>
-		    <button data-filter="recentes">Recentes</button>
-		    <button data-filter="favoritos">Favoritos</button>
-		    <button id="filterByType">Filtrar por tipo</button>
-		  </div>
-		  <input id="searchInput" type="text" placeholder="Pesquisar observações..." />
-		  <div id="observationsList"></div>
-		</section>
+    <section id="tab-objectos-content" class="tab-content">
+      <h2 class="section-title">Objectos Observados</h2>
+      <div class="filters">
+        <button data-filter="todos" class="active">Todos</button>
+        <button data-filter="recentes">Recentes</button>
+        <button data-filter="favoritos">Favoritos</button>
+        <button id="filterByType">Filtrar por tipo</button>
+      </div>
+      <input id="searchInput" type="text" placeholder="Pesquisar observações..." />
+      <div id="observationsList"></div>
+    </section>
 
 
     <!-- RECURSOS -->
-          <section id="tab-recursos-content" class="tab-content">
-        <h2 class="section-title">Recursos</h2>
-        <div class="resources-grid" id="resourcesGrid"></div>
+    <section id="tab-recursos-content" class="tab-content">
+      <h2 class="section-title">Recursos</h2>
       <ul class="cards-list">
+
         <li>
           <a href="https://science.nasa.gov/mission/hubble/science/explore-the-night-sky/hubble-messier-catalog/" target="_blank">
             <div class="card-img"><img src="https://upload.wikimedia.org/wikipedia/commons/8/81/Whirlpool_%28M51%29.jpg" alt="Messier"></div>
@@ -200,8 +206,7 @@
 
     <!-- LINKS ÚTEIS -->
     <section id="tab-links-content" class="tab-content">
-        <h2 class="section-title">Links Úteis</h2>
-        <div class="links-grid" id="linksGrid"></div>
+      <h2 class="section-title">Links Úteis</h2>
       <ul class="cards-list">
         <li><a href="https://ptspace.pt/pt/home/" target="_blank"><div class="card-img"><img src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Portugal_Space_Agency_Logo.png" alt="AEP"></div><div class="card-desc">AEP</div></a></li>
         <li><a href="https://www.esa.int/" target="_blank"><div class="card-img"><img src="https://upload.wikimedia.org/wikipedia/commons/8/80/ESA_logo.svg" alt="ESA"></div><div class="card-desc">ESA</div></a></li>
@@ -219,8 +224,6 @@
 
     <!-- CALENDÁRIO -->
     <section id="tab-calendario-content" class="tab-content">
-        <h2 class="section-title">Calendário</h2>
-        <div id="calendar"></div>
       <h2 id="calendarMonthYear">Mês Ano</h2>
       <div id="calendarHeader">
         <button id="prevMonth">←</button>
@@ -232,7 +235,7 @@
     </section>
 
     <!-- CONFIGURAÇÕES -->
-    <section id="tab-config-content" class="tab">
+    <section id="tab-config-content" class="tab-content">
       <h2>Configurações</h2>
       <p>Ajustes e configurações da aplicação.</p>
       <div class="config-actions">
@@ -252,48 +255,61 @@
     </section>
   </div>
 
-  <!-- Modal de adicionar observação -->
-  <div id="addObservationModal" class="modal">
+  <!-- MODAL ADICIONAR OBSERVAÇÃO -->
+  <div id="addObservationModal" class="modal" style="display:none;">
     <div class="modal-content">
-      <span id="closeAddModal" class="close">&times;</span>
+      <h3 id="addObsTitle">Adicionar Observação</h3>
       <form id="addObservationForm">
-        <h2 id="addObsTitle">Adicionar Observação</h2>
-        <label id="labelNomeObj">Nome do objeto</label>
-        <input type="text" id="inputNome" name="nome" required />
-        <label id="labelTipo">Tipo</label>
-        <select id="inputTipo" name="tipo">
-          <option value="Estrela">Estrela</option>
-          <option value="Galáxia">Galáxia</option>
-          <option value="Aglomerado">Aglomerado</option>
-          <option value="Nebulosa">Nebulosa</option>
-          <option value="Sistema Solar">Sistema Solar</option>
-          <option value="Outro">Outro</option>
-        </select>
-        <label id="labelData">Data da observação</label>
-        <input type="date" id="inputData" name="data" required />
-        <label id="labelLocalizacao">Localização</label>
-        <input type="text" id="inputLocal" name="local" />
-        <label id="labelRA">RA</label>
-        <input type="text" id="inputRA" name="ra" />
-        <label id="labelDEC">DEC</label>
-        <input type="text" id="inputDEC" name="dec" />
-        <label id="labelMagnitude">Magnitude</label>
-        <input type="number" id="inputMagnitude" name="magnitude" />
-        <label id="labelDistancia">Distância</label>
-        <input type="text" id="inputDistancia" name="distancia" />
-        <select id="inputUnidadeDistancia" name="unidadeDistancia">
-          <option value="ly">ly</option>
-          <option value="AU">AU</option>
-        </select>
-        <label id="labelDescricao">Descrição</label>
-        <textarea id="inputDescricao" name="descricao"></textarea>
-        <label id="labelFavorito"><input type="checkbox" id="inputFavorito" name="favorito" /> Favorito</label>
-        <label id="labelImagem">Imagem<input type="file" id="inputImagem" name="imagem" accept="image/*" /></label>
-        <div>
+        <label id="labelNomeObj">Nome do objeto
+          <input name="nome" required />
+        </label>
+        <label id="labelTipo">Tipo
+          <select name="tipo" id="inputTipo" required>
+            <option value="Estrela">Estrela</option>
+            <option value="Galáxia">Galáxia</option>
+            <option value="Aglomerado">Aglomerado</option>
+            <option value="Nebulosa">Nebulosa</option>
+            <option value="Sistema Solar">Sistema Solar</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </label>
+        <label id="labelData">Data
+          <input name="data" type="date" required />
+        </label>
+        <label id="labelLocalizacao">Localização
+          <input name="local" />
+        </label>
+        <label id="labelRA">RA
+          <input name="ra" />
+        </label>
+        <label id="labelDEC">DEC
+          <input name="dec" />
+        </label>
+        <label id="labelMagnitude">Magnitude
+          <input name="magnitude" type="number"/>
+        </label>
+        <label id="labelDistancia">Distância
+          <input name="distancia" />
+          <select name="unidadeDistancia" id="inputUnidadeDistancia">
+            <option value="ly">ly</option>
+            <option value="AU">AU</option>
+          </select>
+        </label>
+        <label id="labelDescricao">Descrição
+          <textarea name="descricao"></textarea>
+        </label>
+        <label id="labelFavorito">
+          <input type="checkbox" name="favorito" /> Favorito
+        </label>
+        <label id="labelImagem">Imagem
+          <input type="file" name="imagem" accept="image/*" />
+        </label>
+        <div style="margin-top:1rem; display:flex; gap:0.5rem;">
           <button type="submit" id="btnSave">Guardar</button>
           <button type="button" id="btnCancel">Cancelar</button>
         </div>
-        <div id="addSuccessMsg" style="display:none"></div>
+        <span id="addSuccessMsg" style="display:none;"></span>
+        <button id="closeAddModal" type="button" style="margin-top:1rem;">Fechar</button>
       </form>
     </div>
   </div>
