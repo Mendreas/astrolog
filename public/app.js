@@ -604,7 +604,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (btn.getAttribute("data-tab") === "inicio") btn.classList.add("active");
   });
   document.querySelectorAll(".tab").forEach(sec => sec.classList.remove("active"));
-  document.getElementById("tab-inicio").classList.add("active");
+  document.getElementById("tab-inicio-content").classList.add("active");
 
   // Pedir localização ao carregar
   pedirGeolocalizacao(coords => {
@@ -739,38 +739,33 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   }
 
 // ========== NAVEGAÇÃO ENTRE TABS ==========
-const navButtons = document.querySelectorAll('nav button[data-tab]');
-const tabSections = document.querySelectorAll('.tab');
+  const navButtons = document.querySelectorAll('ul.nav-tabs .tab-btn');
+  const tabSections = document.querySelectorAll('.tab-content, .tab');
 
-navButtons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    const alvo = btn.dataset.tab;
+  navButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      navButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
 
-    // Ativa o botão selecionado e desativa os outros
-    navButtons.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+      const alvo = btn.getAttribute('data-tab');
+      tabSections.forEach(sec => sec.classList.remove('active'));
+      const target = document.getElementById(alvo + '-content') || document.getElementById(alvo);
+      if (target) target.classList.add('active');
 
-    // Mostra apenas a seção correta
-    tabSections.forEach(sec => sec.classList.remove('active'));
-    const sectionAlvo = document.getElementById(`tab-${alvo}`);
-    if (sectionAlvo) {
-      sectionAlvo.classList.add('active');
-    }
+      if (alvo === 'inicio') atualizarTabInicio();
 
-    if (alvo === 'inicio') atualizarTabInicio();
+      // Exibe o footer somente em “Configurações”
+      const footer = document.querySelector('footer');
+      if (footer) {
+        footer.style.display = (alvo === 'tab-config') ? 'flex' : 'none';
+      }
 
-    // Exibe o footer somente em “Configurações”
-    const footer = document.querySelector('footer');
-    if (footer) {
-      footer.style.display = (alvo === 'configuracoes') ? 'flex' : 'none';
-    }
-
-    // Se a aba for “Calendário”, renderiza o calendário
-    if (alvo === 'calendario') {
-      renderCalendario();
-    }
+      // Se a aba for “Calendário”, renderiza o calendário
+      if (alvo === 'calendario') {
+        renderCalendario();
+      }
+    });
   });
-});
 
   // ======== Setas do Calendário (agora funcionam) ========
   const prevBtn = document.getElementById('prevMonth');
@@ -878,7 +873,7 @@ function translateUI() {
   });
 
   // Traduzir secção configurações
-  if (document.getElementById('tab-configuracoes')) {
+  if (document.getElementById('tab-config-content')) {
     document.querySelector('#tab-configuracoes p').textContent =
       currentLang === 'pt'
         ? "Ajustes e configurações da aplicação."
@@ -909,7 +904,7 @@ function translateUI() {
     span.textContent = textoMesAno;
   }
   // Se o calendário está ativo, força rerender
-  if (document.getElementById('tab-calendario')?.classList.contains('active')) {
+  if (document.getElementById('tab-calendario-content')?.classList.contains('active')) {
     renderCalendario();
   }
 
