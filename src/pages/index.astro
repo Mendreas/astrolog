@@ -73,12 +73,12 @@
 </head>
 <body>
   <!-- Barra Superior: Linha 1 (Só o título AstroLog) -->
-      <div class="logo">AstroLog</div>
+      <div class="logo" style="font-size: 2rem; letter-spacing: 2px;">AstroLog</div>
     </header>
 
     <!-- Barra Superior: Linha 2 (Tabs + botoes) -->
-    <nav class="main-navbar">
-      <ul class="nav-tabs">
+    <nav class="main-navbar" style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; background: #1a1a1a;">
+     <ul class="nav-tabs" style="display: flex; flex-direction: row; gap: 0.3em; margin: 0; padding: 0;">
         <li id="tab-inicio" class="tab active">Início</li>
         <li id="tab-objectos" class="tab">Objectos</li>
         <li id="tab-recursos" class="tab">Recursos</li>
@@ -86,11 +86,11 @@
         <li id="tab-calendario" class="tab">Calendário</li>
         <li id="tab-config" class="tab">Configurações</li>
       </ul>
-      <div class="nav-actions">
-        <input id="searchInput" type="text" class="search-bar" placeholder="Pesquisar observações..." />
+      <div class="header-controls">
+        <input id="searchInput" type="text" placeholder="Pesquisar observações..." />
         <button id="langToggle" class="lang-btn">EN</button>
-        <button id="redFilterBtn" class="red-filter-btn"><span class="dot"></span></button>
-        <button id="addObsBtn" class="add-btn">+</button>
+        <button id="redFilterBtn" class="red-filter-btn" title="Filtro Vermelho"></button>
+        <button id="addObservationBtn" title="Adicionar Observação">＋</button>
       </div>
     </nav>
   </header>
