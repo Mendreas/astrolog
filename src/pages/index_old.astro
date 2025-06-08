@@ -1,70 +1,85 @@
 ---
 ---
-// index.astro
-
 <!DOCTYPE html>
 <html lang="pt">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AstroLog</title>
-    <link rel="stylesheet" href="/style.css" is:inline />
-    <link rel="manifest" href="/manifest.json" />
-	<script src="https://unpkg.com/astronomy-engine"></script>
-  </head>
-  <body>
-    <header>
-      <h1>AstroLog</h1>
-      <div class="header-controls">
-        <input type="text" id="searchInput" placeholder="Pesquisar observações..." />
-        <button id="toggleLanguage">EN</button>
-        <button id="toggleRedFilter">🔴</button>
-        <button id="addObservationBtn" title="Adicionar observação">＋</button>
+<head>
+  <meta charset="UTF-8">
+  <title>AstroLog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Estilos básicos, adapta à tua preferência -->
+  <style>
+    body { font-family: sans-serif; background: #16161d; color: #eee; margin: 0; }
+    nav { display: flex; gap: 6px; background: #222; padding: 0.5em; }
+    nav button { background: #39396a; color: #fff; border: none; border-radius: 8px 8px 0 0; padding: 0.6em 1.2em; font-size: 1em; cursor: pointer; }
+    nav button.active { background: #2e2e50; color: gold; font-weight: bold; }
+    .tab { display: none; padding: 1.5em 1em; min-height: 50vh; }
+    .tab.active { display: block; }
+    footer { background: #222; color: #eee; display: flex; align-items: center; gap: 1em; justify-content: flex-end; padding: 0.8em 1em; }
+    .observation-card { background: #232346; border-radius: 1em; margin: 1em 0; padding: 1em 1.3em; box-shadow: 0 1px 6px #0004; }
+    .observation-card .title { font-weight: bold; font-size: 1.1em; }
+    .observation-card img { margin: 0.6em 0; border-radius: 10px; }
+    .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #000a; display: flex; align-items: center; justify-content: center; z-index: 2000; }
+    .modal-content { background: #101021; color: #fff; border-radius: 18px; padding: 2em 1.5em 1.5em; min-width: 270px; max-width: 96vw; box-shadow: 0 2px 24px #000b; position: relative; }
+    .modal-content label { display: block; margin-top: 0.9em; }
+    .modal-content input, .modal-content select, .modal-content textarea { margin-top: 0.3em; width: 100%; border-radius: 6px; border: 1px solid #39396a; background: #222241; color: #fff; padding: 0.5em; }
+    .modal-content button { margin-top: 1em; background: #39396a; color: #fff; border: none; border-radius: 8px; padding: 0.6em 1.2em; cursor: pointer; }
+    .modal-content button[type=button] { background: #333; }
+    .dropdown-menu { background: #222241; position: absolute; border-radius: 8px; box-shadow: 0 1px 8px #0008; padding: 0.3em 0.5em; z-index: 9999; }
+    .dropdown-menu > div { padding: 0.5em 1em; cursor: pointer; }
+    .dropdown-menu > div:hover { background: #39396a; color: gold; }
+    .highlight { background: #1b2a50 !important; color: gold !important; border-radius: 10px; }
+    /* Calendário */
+    #calendarContainer { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 1em; }
+    .calendar-day { text-align: center; padding: 0.8em 0; border-radius: 9px; background: #222241; cursor: pointer; min-width: 38px; min-height: 38px; }
+    .calendar-day.highlight { background: #39396a; color: gold; }
+    #calendarResults { margin-top: 1em; }
+    /* Filtro vermelho */
+    .red-filter { filter: brightness(0.85) sepia(1) hue-rotate(-30deg) saturate(8) brightness(0.7) contrast(1.2); }
+    /* Mobile */
+    @media (max-width: 700px) { .tab { padding: 1em 0.5em; } .modal-content { padding: 1em; } }
+  </style>
+</head>
+<body>
+  <!-- Navegação principal -->
+  <nav>
+    <button data-tab="inicio" class="active">Início</button>
+    <button data-tab="objectos">Objectos</button>
+    <button data-tab="recursos">Recursos</button>
+    <button data-tab="links">Links Úteis</button>
+    <button data-tab="calendario">Calendário</button>
+    <button data-tab="configuracoes">Configurações</button>
+    <button id="toggleLanguage" style="margin-left:auto;">EN</button>
+    <button id="toggleRedFilter" title="Filtro vermelho" style="margin-left:0.6em;">🔴</button>
+    <button id="addObservationBtn" title="Adicionar Observação" style="margin-left:0.6em;font-weight:bold;">＋</button>
+  </nav>
+
+  <!-- Tabs / Secções -->
+  <section id="tab-inicio" class="tab active">
+    <h2 id="inicio-astroapi-title">Mapa do céu</h2>
+    <div id="inicio-astroapi">
+      <div>
+        <span id="inicio-localidade">Lisboa, Portugal</span>
+        <button id="btn-alterar-local">Alterar</button>
       </div>
-    </header>
-    <main>
-      <nav>
-        <button class="active" data-tab="inicio">Início</button>
-        <button data-tab="objectos">Objectos</button>
-        <button data-tab="recursos">Recursos</button>
-        <button data-tab="links">Links Úteis</button>
-        <button data-tab="calendario">Calendário</button>
-        <button data-tab="configuracoes">Configurações</button>
-      </nav>
-      <div class="content">
-	
-     <!-- ==================================
-     ABA “Inicio”
-     ================================== -->
-	
-	<div id="tab-inicio" class="tab active">
-	
-		<section style="margin-bottom:2rem; background: #242544; padding:1rem 2rem; border-radius:1rem; color:#fff; box-shadow:0 0 12px #0005">
-		  <h2 style="margin-bottom: 0.5rem;">🔭 O que posso observar agora?</h2>
-		  <div style="display:flex; gap:1.5rem; flex-wrap:wrap; align-items:flex-end">
-		    <div>
-		      <label for="obsObjectSelect">Objeto celeste:</label>
-		      <select id="obsObjectSelect" style="padding:0.5rem 1rem; font-size:1rem;"></select>
-		    </div>
-		    <div>
-		      <label for="obsDateTime">Data & Hora:</label>
-		      <input type="datetime-local" id="obsDateTime" style="padding:0.5rem; font-size:1rem;" />
-		    </div>
-		    <div>
-		      <label for="obsLat">Latitude:</label>
-		      <input type="number" id="obsLat" min="-90" max="90" step="0.01" style="width:5rem;" />
-		      <label for="obsLng">Longitude:</label>
-		      <input type="number" id="obsLng" min="-180" max="180" step="0.01" style="width:6rem;" />
-		      <button id="obsGeoBtn" title="Detectar localização">📍</button>
-		    </div>
-		    <button id="obsRefreshBtn">Atualizar</button>
-		  </div>
-		  <div id="obsCard" style="margin-top:1.5rem;"></div>
-		</section>
-
-	  <h2>🌠 <span id="inicio-titulo"></span></h2>
-
-	  <div class="meteoblue-widgets">
+      <div style="margin-top:0.8em;">
+        <span id="inicio-date" style="display:inline;">2024-06-07</span>
+        <input id="inicio-date-input" type="date" style="display:none;" />
+        <button id="inicio-edit-date">Editar Data</button>
+      </div>
+      <!-- Autocomplete Localização -->
+      <div id="local-autocomplete-wrapper" style="display:none;margin-top:1em;">
+        <input id="local-autocomplete" type="text" placeholder="Pesquisar localidade..." autocomplete="off"/>
+        <div id="autocomplete-results" style="background:#232346;max-height:110px;overflow-y:auto;"></div>
+      </div>
+      <div id="astroapi-dados" style="margin-top:1.4em;"></div>
+      <div id="astroapi-skymap" style="margin-top:1em;"></div>
+      <div id="inicio-previsao" style="margin-top:1.4em;"></div>
+      <h3 id="inicio-eventos-title">Eventos astronómicos</h3>
+      <ul id="eventos-list"></ul>
+      <h3 id="inicio-objetos-title">Objetos visíveis</h3>
+      <ul id="objetos-list"></ul>
+	  
+	    <div class="meteoblue-widgets">
 	    <!-- widgets Meteoblue mantidos -->
 	    <div>
 	      <iframe src="https://www.meteoblue.com/pt/tempo/widget/three?geoloc=detect&nocurrent=0&noforecast=0&days=4&tempunit=CELSIUS&windunit=KILOMETER_PER_HOUR&layout=image"
@@ -156,25 +171,26 @@
 	
 	  <!-- Previsão Tempo -->
 	  <div id="inicio-previsao" class="inicio-section"></div>
-	  	
-	<!-- ==================================
-     ABA “Objectos”
-     ================================== -->
-	
-      <section id="tab-objectos" class="tab">
-        <div class="filters">
-          <button data-filter="todos">Todos</button>
-          <button data-filter="recentes">Recentes</button>
-          <button data-filter="favoritos">Favoritos ⭐</button>
-          <button id="filterByType">Filtrar por tipo</button>
-        </div>
-        <div id="observationsList"></div>
-      </section>
 
-<!-- ==================================
-     ABA “Recursos”
-     ================================== -->
-<section id="tab-recursos" class="tab">
+	  
+    </div>
+  </section>
+
+  <section id="tab-objectos" class="tab">
+    <h2 style="display:flex;align-items:center;gap:1em;">
+      Objectos Observados
+      <input type="text" id="searchInput" placeholder="Pesquisar observações..." style="margin-left:1em;flex:1;max-width:220px;">
+      <button id="filterByType" style="margin-left:1em;">Filtrar por tipo</button>
+    </h2>
+    <div style="margin-bottom:1em;">
+      <button data-filter="todos" class="active">Todos</button>
+      <button data-filter="recentes">Recentes</button>
+      <button data-filter="favoritos">Favoritos</button>
+    </div>
+    <div id="observationsList"></div>
+  </section>
+
+  <section id="tab-recursos" class="tab">
   <ul class="cards-list">
     <!-- 1. Catálogo Messier (NASA/Hubble) -->
     <li>
@@ -215,10 +231,7 @@
 </section>
 
 
-<!-- ==================================
-     ABA “Links Úteis”
-     ================================== -->
-<section id="tab-links" class="tab">
+ <section id="tab-links" class="tab">
   <ul class="cards-list">
     <!-- 1. Agência Espacial Portuguesa (AEP) -->
     <li>
@@ -375,24 +388,18 @@
   </ul>
 </section>
 
-	<!-- ==================================
-     ABA “Calendário”
-     ================================== -->
-      <section id="tab-calendario" class="tab">
-        <h2 id="calendarMonthYear">Mês Ano</h2>
-        <div id="calendarHeader">
-          <button id="prevMonth">←</button>
-          <span id="calendarMonthYearDisplay"></span>
-          <button id="nextMonth">→</button>
-        </div>
-        <div id="calendarContainer"></div>
-        <div id="calendarResults" style="margin-top: 1rem;"></div>
-      </section>
-		
-	<!-- ==================================
-     ABA “Configurações”
-     ================================== -->
-		
+
+  <section id="tab-calendario" class="tab">
+    <h2 id="calendarMonthYear">Calendário</h2>
+    <div style="display:flex;align-items:center;gap:1em;">
+      <button id="prevMonth">&lt;</button>
+      <span id="calendarMonthYearDisplay"></span>
+      <button id="nextMonth">&gt;</button>
+    </div>
+    <div id="calendarContainer" style="margin-top:1em;"></div>
+    <div id="calendarResults"></div>
+  </section>
+
       <section id="tab-configuracoes" class="tab">
         <p>Ajustes e configurações da aplicação.</p>
         <div class="config-actions">
@@ -404,17 +411,8 @@
           <button id="downloadBackup">💾 Descarregar Backup</button>
         </div>
       </section>
-    </div>
-  </main>
-  
-<footer>
-  <label>Filtro Vermelho</label>
-  <input type="checkbox" id="redFilterToggle" />
-  <label>Intensidade do Filtro</label>
-  <input type="range" id="redFilterIntensity" min="0" max="100" value="50" />
-</footer>
 
-<!-- MODAL DE ADICIONAR OBSERVAÇÃO -->
+  <!-- MODAL DE ADICIONAR OBSERVAÇÃO -->
   <div id="addObservationModal" class="modal">
     <div class="modal-content dark-modal">
       <span class="close" id="closeAddModal">&times;</span>
@@ -473,15 +471,21 @@
 <p id="addSuccessMsg" class="success-msg" style="display: none">✔️ Observação adicionada com sucesso</p>
 </div>
     </div>
-	
-	
-	<!-- SCRIPTS EXTERNOS (ordem importa!) -->
-	<!-- Astronomy Engine (sempre primeiro, para Obs.js usar) -->
-	<script src="https://unpkg.com/astronomy-engine"></script>
-	<!-- Obs.js: só lida com efemérides/planetas/Messier/Dropdown do modal -->
-	<script src="/js/Obs.js" is:inline></script>
-	<!-- app.js: TODO o core da app, tabs, observações, favoritos, etc -->
-	<script src="/app.js" is:inline></script>
-	
-   </body>
+
+
+  <!-- Footer com filtro vermelho -->
+  <footer style="display:flex;">
+    <label>
+      <input type="checkbox" id="redFilterToggle"> Filtro Vermelho
+    </label>
+    <label>
+      Intensidade:
+      <input type="range" id="redFilterIntensity" min="20" max="100" value="60">
+    </label>
+  </footer>
+
+  <!-- JS -->
+ 	 <script src="/app.js" is:inline></script>
+	<script src="/Obs.js" is:inline></script>
+</body>
 </html>
