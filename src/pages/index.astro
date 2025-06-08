@@ -159,16 +159,18 @@
     </section>
 
     <!-- OBJECTOS -->
-      <section id="tab-objectos-content" class="tab-content">
-        <!-- Lista de objectos observados e botões (JS preenche) -->
-        <h2 class="section-title">Objectos Observados</h2>
-        <div class="objects-toolbar">
-			<button class="chip" id="allObsBtn">Todos</button>
-			<button class="chip" id="recentObsBtn">Recentes</button>
-			<button class="chip" id="favObsBtn">Favoritos</button>
-        </div>
-        <div id="observedObjectsList"></div>
-      </section>
+		<section id="tab-objectos-content" class="tab-content">
+		  <h2 class="section-title">Objectos Observados</h2>
+		  <div class="filters">
+		    <button data-filter="todos" class="active">Todos</button>
+		    <button data-filter="recentes">Recentes</button>
+		    <button data-filter="favoritos">Favoritos</button>
+		    <button id="filterByType">Filtrar por tipo</button>
+		  </div>
+		  <input id="searchInput" type="text" placeholder="Pesquisar observações..." />
+		  <div id="observationsList"></div>
+		</section>
+
 
     <!-- RECURSOS -->
           <section id="tab-recursos-content" class="tab-content">
