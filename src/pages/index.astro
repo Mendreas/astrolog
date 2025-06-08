@@ -78,6 +78,101 @@
       <ul id="eventos-list"></ul>
       <h3 id="inicio-objetos-title">Objetos visíveis</h3>
       <ul id="objetos-list"></ul>
+	  
+	    <div class="meteoblue-widgets">
+	    <!-- widgets Meteoblue mantidos -->
+	    <div>
+	      <iframe src="https://www.meteoblue.com/pt/tempo/widget/three?geoloc=detect&nocurrent=0&noforecast=0&days=4&tempunit=CELSIUS&windunit=KILOMETER_PER_HOUR&layout=image"
+	        frameborder="0" scrolling="NO" allowtransparency="true"
+	        sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
+	        style="width: 460px; height: 590px"></iframe>
+	      <div>
+	        <a href="https://www.meteoblue.com/pt/tempo/semana/index?utm_source=three_widget&utm_medium=linkus&utm_content=three&utm_campaign=Weather%2BWidget"
+	           target="_blank" rel="noopener">meteoblue</a>
+	      </div>
+	    </div>
+	    <div>
+	      <iframe src="https://www.meteoblue.com/pt/tempo/widget/seeing?geoloc=detect&noground=0"
+	        frameborder="0" scrolling="NO" allowtransparency="true"
+	        sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
+	        style="width: 520px; height: 775px"></iframe>
+	      <div>
+	        <a href="https://www.meteoblue.com/pt/tempo/previsao/seeing?utm_source=seeing_widget&utm_medium=linkus&utm_content=seeing&utm_campaign=Weather%2BWidget"
+	           target="_blank" rel="noopener">meteoblue</a>
+	      </div>
+	    </div>
+	    <div>
+	      <iframe src="https://www.meteoblue.com/pt/tempo/mapas/widget?windAnimation=1&gust=1&satellite=1&cloudsAndPrecipitation=1&temperature=1&sunshine=1&extremeForecastIndex=1&geoloc=detect&tempunit=C&windunit=km%252Fh&lengthunit=metric&zoom=5&autowidth=manu"
+	        frameborder="0" scrolling="NO" allowtransparency="true"
+	        sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
+	        style="width: 500px; height: 720px"></iframe>
+	      <div>
+	        <a href="https://www.meteoblue.com/pt/tempo/mapas/index?utm_source=map_widget&utm_medium=linkus&utm_content=map&utm_campaign=Weather%2BWidget"
+	           target="_blank" rel="noopener">meteoblue</a>
+	      </div>
+	    </div>
+	  </div>
+
+      <!-- NOVOS widgets Lua e Mapa Celeste -->
+      <div class="inicio-widgets-row" style="display:flex; flex-wrap:wrap; gap:3rem; justify-content:center; margin: 2rem 0;">
+        <!-- Widget Lua -->
+        <div>
+          <!-- © wdisseny -->
+          <div id="contain_moon" style="text-align:center;padding-top:5px;padding-bottom:5px;">
+            <div style="font-weight:bold">A Lua hoje</div>
+            <div style="margin-top:-7px;margin-bottom:-15px;padding:30px;filter:drop-shadow(0 0 30px hsl(220,100%,100%))"></div>
+            <div>.</div>
+            <div style="font-size:small">.</div>
+          </div>
+          <script>
+          (function(){
+            var d=new Date().getDate();
+            var m=document.querySelectorAll("#contain_moon div");
+            var a=new XMLHttpRequest();
+            var url="https://www.icalendar37.net/lunar/api/?lang=pt&month="+(new Date().getMonth()+1)+"&year="+(new Date().getFullYear())+"&size=100&lightColor=rgb(255,255,255)&shadeColor=rgb(0,0,0)&t&LDZ="+new Date(new Date().getFullYear(),new Date().getMonth(),1)/1000+"";
+            m[1].style.height="100px";
+            a.onreadystatechange=function(){
+              if(a.readyState==4&&a.status==200){
+                var b=JSON.parse(a.responseText);
+                m[1].innerHTML=b.phase[d].svg;
+                if(typeof moon_widget_loaded=="function")moon_widget_loaded(b);
+                m[2].innerHTML=b.phase[d].npWidget;
+                m[3].innerHTML="Próxima fase<br>"+b.nextFullMoon
+              }
+            };
+            a.open("GET",url,true);
+            a.send()
+          })()
+          </script>
+        </div>
+
+      <!-- FIM widgets -->
+
+	  <!-- Data -->
+	  <div class="inicio-row">
+	    <span id="inicio-date-label"></span>
+	    <span id="inicio-date"></span>
+	    <button id="inicio-edit-date" class="inicio-small-btn" title="Editar Data">✏️</button>
+	    <input type="date" id="inicio-date-input" style="display:none;" />
+	  </div>
+	
+	  <!-- Localização -->
+	  <div class="inicio-row">
+	    <span id="inicio-location-label"></span>
+	    <span id="inicio-localidade"></span>
+	    <button id="btn-alterar-local" class="inicio-small-btn"></button>
+	  </div>
+	
+	  <!-- Autocomplete Manual -->
+	  <div id="local-autocomplete-wrapper" style="display:none; position:relative;">
+	    <input id="local-autocomplete" autocomplete="off" placeholder="Pesquisar localidade..." />
+	    <div id="autocomplete-results" class="autocomplete-dropdown"></div>
+	  </div>
+	
+	  <!-- Previsão Tempo -->
+	  <div id="inicio-previsao" class="inicio-section"></div>
+
+	  
     </div>
   </section>
 
@@ -96,25 +191,203 @@
   </section>
 
   <section id="tab-recursos" class="tab">
-    <h2>Recursos</h2>
-    <div>
-      <ul>
-        <li><a href="https://stellarium-web.org/" target="_blank">Stellarium Web</a></li>
-        <li><a href="https://heavens-above.com/" target="_blank">Heavens Above</a></li>
-        <li><a href="https://www.timeanddate.com/astronomy/" target="_blank">Time and Date</a></li>
-        <li><a href="https://xeuxvrxx.manus.space/" target="_blank">Recursos Astro</a></li>
-      </ul>
-    </div>
-  </section>
+  <ul class="cards-list">
+    <!-- 1. Catálogo Messier (NASA/Hubble) -->
+    <li>
+        <a href="https://science.nasa.gov/mission/hubble/science/explore-the-night-sky/hubble-messier-catalog/" target="_blank" title="Catálogo Messier (NASA/Hubble)">
+          <div class="card-img">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/8/81/Whirlpool_%28M51%29.jpg" alt="Catálogo Messier">
+          </div>
+          <div class="card-desc">Catálogo Messier (NASA/Hubble)</div>
+        </a>
+      </li>
 
-  <section id="tab-links" class="tab">
-    <h2>Links Úteis</h2>
-    <ul>
-      <li><a href="https://www.nasa.gov/" target="_blank">NASA</a></li>
-      <li><a href="https://www.esa.int/" target="_blank">ESA</a></li>
-      <li><a href="https://www.spaceweather.com/" target="_blank">SpaceWeather.com</a></li>
-    </ul>
-  </section>
+    <!-- 2. Fases da Lua -->
+    <li>
+      <a href="https://www.timeanddate.com/moon/phases/"
+         target="_blank" title="Fases da Lua">
+        <div class="card-img">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/4/49/Monochrome_Moon_%283103771132%29.jpg"
+            alt="Fases da Lua">
+        </div>
+        <div class="card-desc">Fases da Lua
+        </div>
+      </a>
+    </li>
+
+    <!-- 3. Stellarium Web -->
+    <li>
+      <a href="https://stellarium-web.org/"
+         target="_blank" title="Stellarium Web">
+        <div class="card-img">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/The_Orion.jpg"
+            alt="Stellarium Web">
+        </div>
+        <div class="card-desc">Stellarium Web
+        </div>
+      </a>
+    </li>
+  </ul>
+</section>
+
+
+ <section id="tab-links" class="tab">
+  <ul class="cards-list">
+    <!-- 1. Agência Espacial Portuguesa (AEP) -->
+    <li>
+      <a href="https://ptspace.pt/pt/home/"
+         target="_blank" title="Agência Espacial Portuguesa (AEP)">
+        <div class="card-img">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Portugal_Space_Agency_Logo.png"
+            alt="Agência Espacial Portuguesa">
+        </div>
+        <div class="card-desc">AEP
+        </div>
+      </a>
+    </li>
+
+    <!-- 2. European Space Agency (ESA) -->
+    <li>
+      <a href="https://www.esa.int/"
+         target="_blank"
+         title="European Space Agency (ESA)">
+        <div class="card-img">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/8/80/ESA_logo.svg"
+            alt="ESA">
+        </div>
+        <div class="card-desc">ESA
+        </div>
+      </a>
+    </li>
+
+    <!-- 3. NASA -->
+    <li>
+      <a href="https://www.nasa.gov/"
+         target="_blank"
+         title="NASA">
+        <div class="card-img">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/a/a3/NASA_Worm_logo.svg"
+            alt="NASA">
+        </div>
+        <div class="card-desc">NASA
+        </div>
+      </a>
+    </li>
+
+    <!-- 4. SETI Institute -->
+    <li>
+      <a href="https://www.seti.org/"
+         target="_blank"
+         title="SETI (Search for Extraterrestrial Intelligence)">
+        <div class="card-img">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/c/c5/SETI_institute_logo.jpg"
+            alt="SETI">
+        </div>
+        <div class="card-desc">SETI
+        </div>
+      </a>
+    </li>
+
+    <!-- 5. China National Space Administration (CNSA) -->
+    <li>
+      <a href="https://www.cnsa.gov.cn/english/"
+         target="_blank"
+         title="China National Space Administration (CNSA)">
+        <div class="card-img">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/b/b2/Insignia_of_CNSA.svg"
+            alt="CNSA">
+        </div>
+        <div class="card-desc">CNSA
+        </div>
+      </a>
+    </li>
+
+    <!-- 6. Agência Espacial Brasileira (AEB) -->
+    <li>
+      <a href="https://www.gov.br/aeb/pt-br"
+         target="_blank"
+         title="Agência Espacial Brasileira (AEB)">
+        <div class="card-img">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/5/59/AEB-Brazil.svg"
+            alt="AEB">
+        </div>
+        <div class="card-desc">AEB
+        </div>
+      </a>
+    </li>
+
+    <!-- 7. Canadian Space Agency (CSA) -->
+    <li>
+      <a href="https://www.asc-csa.gc.ca/eng/"
+         target="_blank"
+         title="Canadian Space Agency (CSA)">
+        <div class="card-img">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/8/8b/CSA_logo.jpg"
+            alt="CSA">
+        </div>
+        <div class="card-desc">CSA
+        </div>
+      </a>
+    </li>
+
+    <!-- 8. Indian Space Research Organisation (ISRO) -->
+    <li>
+      <a href="https://www.isro.gov.in/"
+         target="_blank"
+         title="Indian Space Research Organisation (ISRO)">
+        <div class="card-img">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/1/18/Indian_Space_Force.png"
+            alt="ISRO">
+        </div>
+        <div class="card-desc">ISRO
+        </div>
+      </a>
+    </li>
+
+    <!-- 9. SpaceX -->
+    <li>
+      <a href="https://www.spacex.com/"
+         target="_blank"
+         title="SpaceX">
+        <div class="card-img">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/2/28/Falcon_9_logo_by_SpaceX.png"
+            alt="SpaceX">
+        </div>
+        <div class="card-desc">SpaceX
+        </div>
+      </a>
+    </li>
+
+    <!-- 10. ArianeGroup (ArianeSpace) -->
+    <li>
+      <a href="https://www.arianespace.com/"
+         target="_blank"
+         title="ArianeGroup (ArianeSpace)">
+        <div class="card-img">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/6/6c/Arianespace_wo_wordmark.svg"
+            alt="ArianeGroup">
+        </div>
+        <div class="card-desc">Ariane
+        </div>
+      </a>
+    </li>
+
+    <!-- 11. Blue Origin -->
+    <li>
+      <a href="https://www.blueorigin.com/pt-BR"
+         target="_blank"
+         title="Blue Origin">
+        <div class="card-img">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Blue_Origin_updated_logo_2015.svg"
+            alt="Blue Origin">
+        </div>
+        <div class="card-desc">Blue Origin
+        </div>
+      </a>
+    </li>
+  </ul>
+</section>
+
 
   <section id="tab-calendario" class="tab">
     <h2 id="calendarMonthYear">Calendário</h2>
@@ -127,76 +400,78 @@
     <div id="calendarResults"></div>
   </section>
 
-  <section id="tab-configuracoes" class="tab">
-    <h2>Configurações</h2>
-    <p>Ajustes e configurações da aplicação.</p>
-    <button id="exportJson">📤 Exportar Observações</button>
-    <label class="import-label">
-      📥
-      <input type="file" id="importJson" style="display:none;">
-      Importar Observações
-    </label>
-    <button id="downloadBackup">💾 Descarregar Backup</button>
-  </section>
-
-  <!-- MODAL: Adicionar Observação -->
-  <div id="addObservationModal" class="modal" style="display:none;">
-    <div class="modal-content" style="background:#000;">
-      <h2 id="addObsTitle">Adicionar Observação</h2>
-      <form id="addObservationForm" autocomplete="off" enctype="multipart/form-data">
-        <label id="labelNomeObj">Nome do objeto
-          <input name="nome" required>
-        </label>
-        <label id="labelTipo">Tipo
-          <select name="tipo" id="inputTipo" required>
-            <option value="Estrela">Estrela</option>
-            <option value="Galáxia">Galáxia</option>
-            <option value="Aglomerado">Aglomerado</option>
-            <option value="Nebulosa">Nebulosa</option>
-            <option value="Sistema Solar">Sistema Solar</option>
-            <option value="Outro">Outro</option>
-          </select>
-        </label>
-        <label id="labelData">Data da observação
-          <input name="data" type="date" required>
-        </label>
-        <label id="labelLocalizacao">Localização
-          <input name="local">
-        </label>
-        <label id="labelRA">RA
-          <input name="ra">
-        </label>
-        <label id="labelDEC">DEC
-          <input name="dec">
-        </label>
-        <label id="labelMagnitude">Magnitude
-          <input name="magnitude" type="number" step="any">
-        </label>
-        <label id="labelDistancia">Distância
-          <input name="distancia" type="number" step="any">
-          <select name="unidadeDistancia" id="inputUnidadeDistancia">
-            <option value="ly">ly</option>
-            <option value="AU">AU</option>
-          </select>
-        </label>
-        <label id="labelDescricao">Descrição
-          <textarea name="descricao" rows="2"></textarea>
-        </label>
-        <label id="labelFavorito">
-          <input name="favorito" type="checkbox" value="1"> Favorito
-        </label>
-        <label id="labelImagem">Imagem
-          <input name="imagem" type="file" accept="image/*">
-        </label>
-        <div style="margin-top:1em;display:flex;gap:0.6em;justify-content:flex-end;">
-          <button id="btnSave" type="submit">Guardar</button>
-          <button id="btnCancel" type="button">Cancelar</button>
-          <button id="closeAddModal" type="button" style="background:#333;">Fechar</button>
+      <section id="tab-configuracoes" class="tab">
+        <p>Ajustes e configurações da aplicação.</p>
+        <div class="config-actions">
+          <button id="exportJson">📤 Exportar Observações</button>
+          <label for="importJson" class="import-label">
+            📥 Importar Observações
+            <input type="file" id="importJson" accept=".json" style="display: none;" />
+          </label>
+          <button id="downloadBackup">💾 Descarregar Backup</button>
         </div>
-        <div id="addSuccessMsg" style="display:none;margin-top:1em;color:gold;font-weight:bold;">✔️ Observação adicionada com sucesso</div>
-      </form>
-    </div>
+      </section>
+
+  <!-- MODAL DE ADICIONAR OBSERVAÇÃO -->
+  <div id="addObservationModal" class="modal">
+    <div class="modal-content dark-modal">
+      <span class="close" id="closeAddModal">&times;</span>
+      <h2 id="addObsTitle">Adicionar Observação</h2>
+<form id="addObservationForm">
+  <label id="labelNomeObj" for="inputNomeObj">Nome do objeto</label>
+  <input id="inputNomeObj" name="nome" type="text" required />
+
+  <label id="labelTipo" for="inputTipo">Tipo</label>
+  <select id="inputTipo" name="tipo" required>
+    <option value="Estrela">Estrela</option>
+    <option value="Galáxia">Galáxia</option>
+    <option value="Aglomerado">Aglomerado</option>
+    <option value="Nebulosa">Nebulosa</option>
+    <option value="Sistema Solar">Sistema Solar</option>
+    <option value="Outro">Outro</option>
+  </select>
+
+  <label id="labelData" for="inputData">Data da observação</label>
+  <input id="inputData" name="data" type="date" required />
+
+  <label id="labelLocalizacao" for="inputLocalizacao">Localização</label>
+  <input id="inputLocalizacao" name="local" type="text" />
+
+  <label id="labelRA" for="inputRA">RA</label>
+  <input id="inputRA" name="ra" type="text" />
+
+  <label id="labelDEC" for="inputDEC">DEC</label>
+  <input id="inputDEC" name="dec" type="text" />
+
+  <label id="labelMagnitude" for="inputMagnitude">Magnitude</label>
+  <input id="inputMagnitude" name="magnitude" type="number" step="0.1" />
+
+  <label id="labelDistancia" for="inputDistancia">Distância</label>
+  <input id="inputDistancia" name="distancia" type="text" />
+  <select name="unidadeDistancia" id="inputUnidadeDistancia">
+    <option value="ly">ly</option>
+    <option value="AU">AU</option>
+  </select>
+
+  <label id="labelDescricao" for="inputDescricao">Descrição</label>
+  <textarea id="inputDescricao" name="descricao"></textarea>
+
+  <label id="labelFavorito">
+    <input type="checkbox" name="favorito" /> Favorito
+  </label>
+
+  <label id="labelImagem" for="inputImagem">Imagem</label>
+  <input id="inputImagem" name="imagem" type="file" accept="image/*" />
+
+  <div class="modal-buttons" style="margin-top:1rem; display:flex; gap:1rem; justify-content:flex-end;">
+    <button type="submit" id="btnSave">Guardar</button>
+    <button type="button" id="btnCancel">Cancelar</button>
   </div>
+</form>
+<p id="addSuccessMsg" class="success-msg" style="display: none">✔️ Observação adicionada com sucesso</p>
+</div>
+    </div>
+
 
   <!-- Footer com filtro vermelho -->
   <footer style="display:flex;">
