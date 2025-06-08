@@ -249,8 +249,7 @@ function getIcon(tipo) {
 }
 
 /*
- * ========== INICIALIZAÇÃO DE INTERFACE E TABS ==========
- */
+/* ========== INICIALIZAÇÃO DE INTERFACE E TABS ========== */
 document.addEventListener('DOMContentLoaded', async () => {
   // Carrega observações da base de dados ao arrancar
   observacoes = await getAllObservacoes();
@@ -304,8 +303,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       renderObservacoes();
     });
   });
-});
-
 
   // Pesquisa textual
   const searchInput = document.getElementById('searchInput');
@@ -361,7 +358,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Troca idioma (PT/EN)
-  const langBtn = document.getElementById('toggleLanguage');
+  const langBtn = document.getElementById('langToggle');
   if (langBtn) {
     langBtn.addEventListener('click', () => {
       currentLang = currentLang === 'pt' ? 'en' : 'pt';
@@ -375,7 +372,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const addBtn = document.getElementById('addObservationBtn');
   const modal = document.getElementById('addObservationModal');
   const closeModalBtn = document.getElementById('closeAddModal');
-  const cancelBtn = document.getElementById('cancelAdd');
+  const cancelBtn = document.getElementById('btnCancel');
   const form = document.getElementById('addObservationForm');
   const successMsg = document.getElementById('addSuccessMsg');
   if (addBtn) addBtn.addEventListener('click', () => { if (modal) modal.style.display = 'flex'; });
@@ -472,7 +469,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       reader.readAsText(file);
     });
   }
-});
+}); // NÃO retires este fecho!
+
 
 /*
  * ========== FILTRO VERMELHO ==========
