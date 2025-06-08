@@ -897,3 +897,57 @@ body.light textarea {
   min-width: 320px;
   max-width: 100%;
 }
+
+.top-header {
+  background: #8246ee;
+  color: #fff;
+  font-size: 2rem;
+  font-weight: bold;
+  padding: 0.5rem 2rem;
+  letter-spacing: 0.1em;
+}
+
+.main-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #181820;
+  padding: 0.2rem 2rem;
+  box-shadow: 0 1px 4px #0004;
+}
+.nav-tabs {
+  display: flex;
+  gap: 0.6rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.nav-tabs .tab {
+  background: #32325c;
+  color: #fff;
+  border-radius: 0.5rem 0.5rem 0 0;
+  padding: 0.5rem 1.2rem;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  font-size: 1rem;
+  font-weight: 500;
+}
+.nav-tabs .tab.active, .nav-tabs .tab:hover {
+  background: #212166;
+  color: #ffd700;
+}
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.search-bar { /* etc... */ }
+.lang-btn, .red-filter-btn, .add-btn { /* ... */ }
+.dot { width: 20px; height: 20px; border-radius: 50%; background: radial-gradient(circle at 60% 40%, #ff6767 0%, #c40000 100%); display: block; }
+.weather-widgets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+.widget-meteo, .widget-seeing { min-width: 380px; }

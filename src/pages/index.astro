@@ -1,4 +1,5 @@
 ---
+import "../public/style.css";
 ---
 <!DOCTYPE html>
 <html lang="pt">
@@ -72,25 +73,27 @@
   </style>
 </head>
 <body>
-  <!-- LINHA 1: Header topo -->
-  <header class="header-main">
-    <div class="header-row">
-      <h1 id="logo">AstroLog</h1>
-      <div class="header-controls">
-        <input type="text" id="searchInput" placeholder="Pesquisar observações..." />
-        <button id="toggleLanguage" class="lang-btn">EN</button>
-        <button id="toggleRedFilter" class="red-btn" title="Filtro vermelho">🔴</button>
-        <button id="addObservationBtn" class="add-btn" title="Adicionar observação">＋</button>
+  <!-- Barra Superior: Linha 1 (Só o título AstroLog) -->
+    <header class="top-header">
+      <div class="logo">AstroLog</div>
+    </header>
+
+    <!-- Barra Superior: Linha 2 (Tabs + botoes) -->
+    <nav class="main-navbar">
+      <ul class="nav-tabs">
+        <li id="tab-inicio" class="tab active">Início</li>
+        <li id="tab-objectos" class="tab">Objectos</li>
+        <li id="tab-recursos" class="tab">Recursos</li>
+        <li id="tab-links" class="tab">Links Úteis</li>
+        <li id="tab-calendario" class="tab">Calendário</li>
+        <li id="tab-config" class="tab">Configurações</li>
+      </ul>
+      <div class="nav-actions">
+        <input id="searchInput" type="text" class="search-bar" placeholder="Pesquisar observações..." />
+        <button id="langToggle" class="lang-btn">EN</button>
+        <button id="redFilterBtn" class="red-filter-btn"><span class="dot"></span></button>
+        <button id="addObsBtn" class="add-btn">+</button>
       </div>
-    </div>
-    <!-- LINHA 2: Tabs -->
-    <nav class="tabs-row">
-      <button class="tab-btn active" data-tab="inicio" id="tabBtn-inicio">Início</button>
-      <button class="tab-btn" data-tab="objectos" id="tabBtn-objectos">Objectos</button>
-      <button class="tab-btn" data-tab="recursos" id="tabBtn-recursos">Recursos</button>
-      <button class="tab-btn" data-tab="links" id="tabBtn-links">Links Úteis</button>
-      <button class="tab-btn" data-tab="calendario" id="tabBtn-calendario">Calendário</button>
-      <button class="tab-btn" data-tab="configuracoes" id="tabBtn-configuracoes">Configurações</button>
     </nav>
   </header>
 
@@ -112,27 +115,37 @@
             <input id="inicio-date-input" type="date" style="display:none;" />
           </div>
         </div>
-        <!-- Widgets Meteoblue lado a lado -->
-        <div class="meteoblue-widgets">
-          <div>
-            <iframe src="https://www.meteoblue.com/pt/tempo/widget/three?geoloc=detect&nocurrent=0&noforecast=0&days=4&tempunit=CELSIUS&windunit=KILOMETER_PER_HOUR&layout=image"
-              frameborder="0" scrolling="NO" allowtransparency="true"
-              sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
-              style="width: 440px; height: 570px"></iframe>
-            <div>
-              <a href="https://www.meteoblue.com/pt/tempo/semana/index?utm_source=three_widget&utm_medium=linkus&utm_content=three&utm_campaign=Weather%2BWidget"
-                 target="_blank" rel="noopener">meteoblue</a>
-            </div>
-          </div>
-          <div>
-            <iframe src="https://www.meteoblue.com/pt/tempo/widget/seeing?geoloc=detect&noground=0"
-              frameborder="0" scrolling="NO" allowtransparency="true"
-              sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
-              style="width: 440px; height: 590px"></iframe>
-            <div>
-              <a href="https://www.meteoblue.com/pt/tempo/previsao/seeing?utm_source=seeing_widget&utm_medium=linkus&utm_content=seeing&utm_campaign=Weather%2BWidget"
-                 target="_blank" rel="noopener">meteoblue</a>
-            </div>
+	    <div class="meteoblue-widgets">
+	    <!-- widgets Meteoblue mantidos -->
+	    <div>
+	      <iframe src="https://www.meteoblue.com/pt/tempo/widget/three?geoloc=detect&nocurrent=0&noforecast=0&days=4&tempunit=CELSIUS&windunit=KILOMETER_PER_HOUR&layout=image"
+	        frameborder="0" scrolling="NO" allowtransparency="true"
+	        sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
+	        style="width: 460px; height: 590px"></iframe>
+	      <div>
+	        <a href="https://www.meteoblue.com/pt/tempo/semana/index?utm_source=three_widget&utm_medium=linkus&utm_content=three&utm_campaign=Weather%2BWidget"
+	           target="_blank" rel="noopener">meteoblue</a>
+	      </div>
+	    </div>
+	    <div>
+	      <iframe src="https://www.meteoblue.com/pt/tempo/widget/seeing?geoloc=detect&noground=0"
+	        frameborder="0" scrolling="NO" allowtransparency="true"
+	        sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
+	        style="width: 520px; height: 775px"></iframe>
+	      <div>
+	        <a href="https://www.meteoblue.com/pt/tempo/previsao/seeing?utm_source=seeing_widget&utm_medium=linkus&utm_content=seeing&utm_campaign=Weather%2BWidget"
+	           target="_blank" rel="noopener">meteoblue</a>
+	      </div>
+	    </div>
+	    <div>
+	      <iframe src="https://www.meteoblue.com/pt/tempo/mapas/widget?windAnimation=1&gust=1&satellite=1&cloudsAndPrecipitation=1&temperature=1&sunshine=1&extremeForecastIndex=1&geoloc=detect&tempunit=C&windunit=km%252Fh&lengthunit=metric&zoom=5&autowidth=manu"
+	        frameborder="0" scrolling="NO" allowtransparency="true"
+	        sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
+	        style="width: 500px; height: 720px"></iframe>
+	      <div>
+	        <a href="https://www.meteoblue.com/pt/tempo/mapas/index?utm_source=map_widget&utm_medium=linkus&utm_content=map&utm_campaign=Weather%2BWidget"
+	           target="_blank" rel="noopener">meteoblue</a>
+	      </div>
           </div>
         </div>
         <!-- Eventos e objetos -->
@@ -148,19 +161,21 @@
     </section>
 
     <!-- OBJECTOS -->
-    <section id="tab-objectos" class="tab">
-      <h2>Objectos Observados</h2>
-      <div class="filters">
-        <button data-filter="todos" class="active">Todos</button>
-        <button data-filter="recentes">Recentes</button>
-        <button data-filter="favoritos">Favoritos</button>
-        <button id="filterByType">Filtrar por tipo</button>
-      </div>
-      <div id="observationsList"></div>
-    </section>
+      <section id="tab-objectos-content" class="tab-content">
+        <!-- Lista de objectos observados e botões (JS preenche) -->
+        <h2 class="section-title">Objectos Observados</h2>
+        <div class="objects-toolbar">
+          <button class="chip" id="allObsBtn">Todos</button>
+          <button class="chip" id="recentObsBtn">Recentes</button>
+          <button class="chip" id="favObsBtn">Favoritos</button>
+        </div>
+        <div id="observedObjectsList"></div>
+      </section>
 
     <!-- RECURSOS -->
-    <section id="tab-recursos" class="tab">
+          <section id="tab-recursos-content" class="tab-content">
+        <h2 class="section-title">Recursos</h2>
+        <div class="resources-grid" id="resourcesGrid"></div>
       <ul class="cards-list">
         <li>
           <a href="https://science.nasa.gov/mission/hubble/science/explore-the-night-sky/hubble-messier-catalog/" target="_blank">
@@ -184,7 +199,9 @@
     </section>
 
     <!-- LINKS ÚTEIS -->
-    <section id="tab-links" class="tab">
+    <section id="tab-links-content" class="tab-content">
+        <h2 class="section-title">Links Úteis</h2>
+        <div class="links-grid" id="linksGrid"></div>
       <ul class="cards-list">
         <li><a href="https://ptspace.pt/pt/home/" target="_blank"><div class="card-img"><img src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Portugal_Space_Agency_Logo.png" alt="AEP"></div><div class="card-desc">AEP</div></a></li>
         <li><a href="https://www.esa.int/" target="_blank"><div class="card-img"><img src="https://upload.wikimedia.org/wikipedia/commons/8/80/ESA_logo.svg" alt="ESA"></div><div class="card-desc">ESA</div></a></li>
@@ -201,7 +218,9 @@
     </section>
 
     <!-- CALENDÁRIO -->
-    <section id="tab-calendario" class="tab">
+    <section id="tab-calendario-content" class="tab-content">
+        <h2 class="section-title">Calendário</h2>
+        <div id="calendar"></div>
       <h2 id="calendarMonthYear">Mês Ano</h2>
       <div id="calendarHeader">
         <button id="prevMonth">←</button>
