@@ -265,15 +265,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.querySelectorAll(".tab-content").forEach(sec => sec.classList.remove("active"));
   document.getElementById("tab-inicio-content").classList.add("active");
 
-  // Pede localização ao carregar para a tab Início
-  pedirGeolocalizacao(coords => {
-    if (coords) {
-      inicioCoords = coords;
-      localState.coords = coords;
-    }
-    atualizarTabInicio();
-  });
-
   // Navegação entre tabs (botões)
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1004,10 +995,7 @@ async function atualizarTabInicio() {
   const t = i18n[currentLang];
   const dadosDiv = document.getElementById('astroapi-dados');
   const skyDiv = document.getElementById('astroapi-skymap');
-  if (!localState.coords) {
-    dadosDiv.innerHTML = `<span>${t.erroGeo}</span>`;
-    skyDiv.innerHTML = '';
-    return;
+  if (!dadosDiv || !skyDiv) return;
   }
   dadosDiv.innerHTML = t.buscarTempo;
   try {
