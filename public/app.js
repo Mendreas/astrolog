@@ -259,11 +259,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   updateRedFilterClass();
 
   // Marca tab “Início” como ativa à partida
-  document.querySelectorAll("nav button[data-tab]").forEach(btn => {
+  document.querySelectorAll(".tab-btn").forEach(btn => {
     btn.classList.remove("active");
     if (btn.getAttribute("data-tab") === "inicio") btn.classList.add("active");
   });
-  document.querySelectorAll(".tab, .tab-content").forEach(sec => sec.classList.remove("active"));
+  document.querySelectorAll(".tab-content").forEach(sec => sec.classList.remove("active"));
   document.getElementById("tab-inicio-content").classList.add("active");
 
   // Pede localização ao carregar para a tab Início
@@ -276,21 +276,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // Navegação entre tabs (botões)
-  const navButtons = document.querySelectorAll('ul.nav-tabs .tab-btn, nav button[data-tab]');
-  const tabSections = document.querySelectorAll('.tab-content, .tab');
-  navButtons.forEach(btn => {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      navButtons.forEach(b => b.classList.remove('active'));
+      // Ativa/desativa botões
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      const alvo = btn.getAttribute('data-tab');
-      tabSections.forEach(sec => sec.classList.remove('active'));
-      const target = document.getElementById(alvo + '-content') || document.getElementById(alvo);
-      if (target) target.classList.add('active');
-      if (alvo === 'inicio') atualizarTabInicio();
-      if (alvo === 'calendario') renderCalendario();
-      // Footer só em Configurações
-      const footer = document.querySelector('footer');
-      if (footer) footer.style.display = (alvo === 'tab-config' || alvo === 'configuracoes') ? 'flex' : 'none';
+
+      // Ativa/desativa conteúdos
+      const tabName = btn.getAttribute('data-tab');
+      document.querySelectorAll('.tab-content').forEach(sec => sec.classList.remove('active'));
+      const section = document.getElementById(`tab-${tabName}-content`);
+      if (section) section.classList.add('active');
+
+      // Funções extra por tab
+      if (tabName === 'inicio') atualizarTabInicio();
+      if (tabName === 'calendario') renderCalendario();
     });
   });
 
@@ -304,6 +304,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       renderObservacoes();
     });
   });
+});
+
 
   // Pesquisa textual
   const searchInput = document.getElementById('searchInput');
