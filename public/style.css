@@ -9,8 +9,8 @@ body {
   transition: background-color 0.3s, color 0.3s;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
+  /* height: 100vh; */    /* COMENTA ou REMOVE esta linha */
+  /* overflow: hidden; */ /* COMENTA ou REMOVE esta linha */
   box-sizing: border-box;
 }
 
@@ -81,7 +81,7 @@ header {
 main {
   display: flex;
   flex: 1;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 
 /* ----------------------------------------------
@@ -1009,4 +1009,13 @@ button:focus-visible, select:focus-visible {
 .red-filter-btn.active {
   background: #ff5252;
   color: gold;
+}
+
+/* Corrige a visibilidade das tabs */
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
 }

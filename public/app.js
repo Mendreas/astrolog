@@ -253,6 +253,8 @@ function getIcon(tipo) {
 
 /* ========== INICIALIZAÇÃO DE INTERFACE E TABS ========== */
 document.addEventListener('DOMContentLoaded', async () => {
+	  // Para debug
+  console.log('AstroLog loaded');
   // Carrega observações da base de dados ao arrancar
   observacoes = await getAllObservacoes();
   renderObservacoes();
