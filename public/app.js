@@ -863,29 +863,56 @@ function capitalize(str) {
 function translateUI() {
   const t = i18n[currentLang];
   // Cabeçalho + filtros rápidos
-  document.getElementById('searchInput').placeholder = t.searchPlaceholder;
-  document.querySelector('[data-filter="todos"]').textContent = t.all;
-  document.querySelector('[data-filter="recentes"]').textContent = t.recent;
-  document.querySelector('[data-filter="favoritos"]').textContent = t.favorites;
-  document.getElementById('filterByType').textContent = t.filterType;
-  document.getElementById('langToggle').textContent = currentLang === 'pt' ? 'EN' : 'PT';
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) searchInput.placeholder = t.searchPlaceholder;
+
+  const filterTodos = document.querySelector('[data-filter="todos"]');
+  if (filterTodos) filterTodos.textContent = t.all;
+
+  const filterRecentes = document.querySelector('[data-filter="recentes"]');
+  if (filterRecentes) filterRecentes.textContent = t.recent;
+
+  const filterFavoritos = document.querySelector('[data-filter="favoritos"]');
+  if (filterFavoritos) filterFavoritos.textContent = t.favorites;
+
+  const filterByType = document.getElementById('filterByType');
+  if (filterByType) filterByType.textContent = t.filterType;
+
+  const langToggle = document.getElementById('langToggle');
+  if (langToggle) langToggle.textContent = currentLang === 'pt' ? 'EN' : 'PT';
 
   // Modal Adicionar Observação
-  document.getElementById('addObsTitle').textContent = t.addObsTitle;
-  document.getElementById('labelNomeObj').textContent = t.nomeObj;
-  document.getElementById('labelTipo').textContent = t.tipo;
-  document.getElementById('labelData').textContent = t.dataObs;
-  document.getElementById('labelLocalizacao').textContent = t.localizacao;
-  document.getElementById('labelRA').textContent = t.ra;
-  document.getElementById('labelDEC').textContent = t.dec;
-  document.getElementById('labelMagnitude').textContent = t.magnitude;
-  document.getElementById('labelDistancia').textContent = t.distancia;
-  document.getElementById('labelDescricao').textContent = t.descricao;
-  document.getElementById('labelFavorito').lastChild.textContent = " " + t.favorito;
-  document.getElementById('labelImagem').textContent = t.imagem;
-  document.getElementById('btnSave').textContent = t.save;
-  document.getElementById('btnCancel').textContent = t.cancel;
-  document.getElementById('addSuccessMsg').textContent = t.saveSuccess;
+  const addObsTitle = document.getElementById('addObsTitle');
+  if (addObsTitle) addObsTitle.textContent = t.addObsTitle;
+  const labelNomeObj = document.getElementById('labelNomeObj');
+  if (labelNomeObj) labelNomeObj.textContent = t.nomeObj;
+  const labelTipo = document.getElementById('labelTipo');
+  if (labelTipo) labelTipo.textContent = t.tipo;
+  const labelData = document.getElementById('labelData');
+  if (labelData) labelData.textContent = t.dataObs;
+  const labelLocalizacao = document.getElementById('labelLocalizacao');
+  if (labelLocalizacao) labelLocalizacao.textContent = t.localizacao;
+  const labelRA = document.getElementById('labelRA');
+  if (labelRA) labelRA.textContent = t.ra;
+  const labelDEC = document.getElementById('labelDEC');
+  if (labelDEC) labelDEC.textContent = t.dec;
+  const labelMagnitude = document.getElementById('labelMagnitude');
+  if (labelMagnitude) labelMagnitude.textContent = t.magnitude;
+  const labelDistancia = document.getElementById('labelDistancia');
+  if (labelDistancia) labelDistancia.textContent = t.distancia;
+  const labelDescricao = document.getElementById('labelDescricao');
+  if (labelDescricao) labelDescricao.textContent = t.descricao;
+  const labelFavorito = document.getElementById('labelFavorito');
+  if (labelFavorito && labelFavorito.lastChild)
+    labelFavorito.lastChild.textContent = " " + t.favorito;
+  const labelImagem = document.getElementById('labelImagem');
+  if (labelImagem) labelImagem.textContent = t.imagem;
+  const btnSave = document.getElementById('btnSave');
+  if (btnSave) btnSave.textContent = t.save;
+  const btnCancel = document.getElementById('btnCancel');
+  if (btnCancel) btnCancel.textContent = t.cancel;
+  const addSuccessMsg = document.getElementById('addSuccessMsg');
+  if (addSuccessMsg) addSuccessMsg.textContent = t.saveSuccess;
 
   // Select de tipos no formulário
   const tipoSelect = document.getElementById('inputTipo');
@@ -897,7 +924,7 @@ function translateUI() {
   }
   // Unidade distância
   const unidade = document.getElementById('inputUnidadeDistancia');
-  if (unidade) {
+  if (unidade && unidade.options.length >= 2) {
     unidade.options[0].text = "ly";
     unidade.options[1].text = "AU";
   }
@@ -909,23 +936,24 @@ function translateUI() {
   // Configurações
   if (document.getElementById('tab-config-content')) {
     const configP = document.querySelector('#tab-configuracoes p');
-if (configP) {
-  configP.textContent = currentLang === 'pt'
-    ? "Ajustes e configurações da aplicação."
-    : "Application settings and adjustments.";
-}
-
-      currentLang === 'pt'
+    if (configP) {
+      configP.textContent = currentLang === 'pt'
         ? "Ajustes e configurações da aplicação."
         : "Application settings and adjustments.";
-    document.getElementById('exportJson').textContent = "📤 " + (currentLang === 'pt' ? "Exportar Observações" : "Export Observations");
+    }
+    const exportJson = document.getElementById('exportJson');
+    if (exportJson) exportJson.textContent = "📤 " + (currentLang === 'pt' ? "Exportar Observações" : "Export Observations");
     const importLabel = document.querySelector('label.import-label');
-    if (importLabel) importLabel.childNodes[1].textContent = currentLang === 'pt' ? " Importar Observações" : " Import Observations";
-    document.getElementById('downloadBackup').textContent = currentLang === 'pt' ? "💾 Descarregar Backup" : "💾 Download Backup";
+    if (importLabel && importLabel.childNodes[1])
+      importLabel.childNodes[1].textContent = currentLang === 'pt' ? " Importar Observações" : " Import Observations";
+    const downloadBackup = document.getElementById('downloadBackup');
+    if (downloadBackup) downloadBackup.textContent = currentLang === 'pt' ? "💾 Descarregar Backup" : "💾 Download Backup";
   }
   // Footer
-  document.querySelector('footer label:first-child').textContent = t.redFilter;
-  document.querySelector('footer label:last-of-type').textContent = t.intensity;
+  const footerRed = document.querySelector('footer label:first-child');
+  if (footerRed) footerRed.textContent = t.redFilter;
+  const footerIntensity = document.querySelector('footer label:last-of-type');
+  if (footerIntensity) footerIntensity.textContent = t.intensity;
   // Botões das observações
   document.querySelectorAll(".observation-card button.view-btn").forEach(btn => btn.textContent = `🔍 ${t.ver}`);
   document.querySelectorAll(".observation-card button.edit-btn").forEach(btn => btn.textContent = `✏️ ${t.edit}`);
@@ -953,6 +981,7 @@ if (configP) {
   });
   atualizarTabInicio();
 }
+
 
 /*
  * ========== MODAIS GENÉRICOS ==========
