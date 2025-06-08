@@ -2,12 +2,12 @@
 ---
 <!DOCTYPE html>
 <html lang="pt">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AstroLog</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="manifest" href="manifest.json" />
+  <head>
+    <meta charset="UTF-8" />
+    <title>AstroLog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="/style.css" />
   <style>
     body { font-family: 'Segoe UI', Arial, sans-serif; background: #16161d; color: #eee; margin: 0; }
     header { display: flex; align-items: center; justify-content: space-between; background: #7e3ff2; padding: 0.6em 1.2em; }
@@ -85,16 +85,26 @@
     }
   </style>
 </head>
-<body>
-  <header>
-    <h1>AstroLog</h1>
-    <div class="header-controls">
-      <input type="text" id="searchInput" placeholder="Pesquisar observações..." />
-      <button id="toggleLanguage">EN</button>
-      <button id="toggleRedFilter" title="Filtro vermelho">🔴</button>
-      <button id="addObservationBtn" title="Adicionar observação">＋</button>
-    </div>
-  </header>
+  <body>
+    <!-- LINHA 1: Header topo -->
+    <header class="header-main">
+      <div class="header-row">
+        <h1 id="logo">AstroLog</h1>
+        <input type="text" id="searchInput" placeholder="Pesquisar observações..." />
+        <button id="toggleLanguage" class="lang-btn">EN</button>
+        <button id="toggleRedFilter" class="red-btn" title="Filtro vermelho">🔴</button>
+        <button id="addObservationBtn" class="add-btn" title="Adicionar observação">＋</button>
+      </div>
+      <!-- LINHA 2: Tabs -->
+      <nav class="tabs-row">
+        <button class="tab-btn active" data-tab="inicio" id="tabBtn-inicio">Início</button>
+        <button class="tab-btn" data-tab="objectos" id="tabBtn-objectos">Objectos</button>
+        <button class="tab-btn" data-tab="recursos" id="tabBtn-recursos">Recursos</button>
+        <button class="tab-btn" data-tab="links" id="tabBtn-links">Links Úteis</button>
+        <button class="tab-btn" data-tab="calendario" id="tabBtn-calendario">Calendário</button>
+        <button class="tab-btn" data-tab="configuracoes" id="tabBtn-configuracoes">Configurações</button>
+      </nav>
+    </header>
 
   <nav>
     <button class="active" data-tab="inicio">Início</button>
@@ -243,61 +253,60 @@
         <label for="redFilterIntensity">Intensidade do Filtro</label>
         <input type="range" id="redFilterIntensity" min="0" max="100" value="50" />
       </div>
-    </section>
-  </div>
+      </section>
+    </main>
 
-  <!-- MODAL DE ADICIONAR OBSERVAÇÃO -->
-  <div id="addObservationModal" class="modal">
-    <div class="modal-content dark-modal">
-      <span class="close" id="closeAddModal">&times;</span>
-      <h2 id="addObsTitle">Adicionar Observação</h2>
-      <form id="addObservationForm">
-        <label id="labelNomeObj" for="inputNomeObj">Nome do objeto</label>
-        <input id="inputNomeObj" name="nome" type="text" required />
-        <label id="labelTipo" for="inputTipo">Tipo</label>
-        <select id="inputTipo" name="tipo" required>
-          <option value="Estrela">Estrela</option>
-          <option value="Galáxia">Galáxia</option>
-          <option value="Aglomerado">Aglomerado</option>
-          <option value="Nebulosa">Nebulosa</option>
-          <option value="Sistema Solar">Sistema Solar</option>
-          <option value="Outro">Outro</option>
-        </select>
-        <label id="labelData" for="inputData">Data da observação</label>
-        <input id="inputData" name="data" type="date" required />
-        <label id="labelLocalizacao" for="inputLocalizacao">Localização</label>
-        <input id="inputLocalizacao" name="local" type="text" />
-        <label id="labelRA" for="inputRA">RA</label>
-        <input id="inputRA" name="ra" type="text" />
-        <label id="labelDEC" for="inputDEC">DEC</label>
-        <input id="inputDEC" name="dec" type="text" />
-        <label id="labelMagnitude" for="inputMagnitude">Magnitude</label>
-        <input id="inputMagnitude" name="magnitude" type="number" step="0.1" />
-        <label id="labelDistancia" for="inputDistancia">Distância</label>
-        <input id="inputDistancia" name="distancia" type="text" />
-        <select name="unidadeDistancia" id="inputUnidadeDistancia">
-          <option value="ly">ly</option>
-          <option value="AU">AU</option>
-        </select>
-        <label id="labelDescricao" for="inputDescricao">Descrição</label>
-        <textarea id="inputDescricao" name="descricao"></textarea>
-        <label id="labelFavorito"><input type="checkbox" name="favorito" /> Favorito</label>
-        <label id="labelImagem" for="inputImagem">Imagem</label>
-        <input id="inputImagem" name="imagem" type="file" accept="image/*" />
-        <div class="modal-buttons" style="margin-top:1rem; display:flex; gap:1rem; justify-content:flex-end;">
-          <button type="submit" id="btnSave">Guardar</button>
-          <button type="button" id="btnCancel">Cancelar</button>
-        </div>
-      </form>
-      <p id="addSuccessMsg" class="success-msg" style="display: none">✔️ Observação adicionada com sucesso</p>
+    <!-- Modal de adicionar observação -->
+    <div id="addObservationModal" class="modal">
+      <div class="modal-content">
+        <span id="closeAddModal" class="close">&times;</span>
+        <form id="addObservationForm">
+          <h2 id="addObsTitle">Adicionar Observação</h2>
+          <label id="labelNomeObj">Nome do objeto</label>
+          <input type="text" id="inputNome" name="nome" required />
+          <label id="labelTipo">Tipo</label>
+          <select id="inputTipo" name="tipo">
+            <option value="Estrela">Estrela</option>
+            <option value="Galáxia">Galáxia</option>
+            <option value="Aglomerado">Aglomerado</option>
+            <option value="Nebulosa">Nebulosa</option>
+            <option value="Sistema Solar">Sistema Solar</option>
+            <option value="Outro">Outro</option>
+          </select>
+          <label id="labelData">Data da observação</label>
+          <input type="date" id="inputData" name="data" required />
+          <label id="labelLocalizacao">Localização</label>
+          <input type="text" id="inputLocal" name="local" />
+          <label id="labelRA">RA</label>
+          <input type="text" id="inputRA" name="ra" />
+          <label id="labelDEC">DEC</label>
+          <input type="text" id="inputDEC" name="dec" />
+          <label id="labelMagnitude">Magnitude</label>
+          <input type="number" id="inputMagnitude" name="magnitude" />
+          <label id="labelDistancia">Distância</label>
+          <input type="text" id="inputDistancia" name="distancia" />
+          <select id="inputUnidadeDistancia" name="unidadeDistancia">
+            <option value="ly">ly</option>
+            <option value="AU">AU</option>
+          </select>
+          <label id="labelDescricao">Descrição</label>
+          <textarea id="inputDescricao" name="descricao"></textarea>
+          <label id="labelFavorito"><input type="checkbox" id="inputFavorito" name="favorito" /> Favorito</label>
+          <label id="labelImagem">Imagem<input type="file" id="inputImagem" name="imagem" accept="image/*" /></label>
+          <div>
+            <button type="submit" id="btnSave">Guardar</button>
+            <button type="button" id="btnCancel">Cancelar</button>
+          </div>
+          <div id="addSuccessMsg" style="display:none"></div>
+        </form>
+      </div>
     </div>
-  </div>
 
   <footer>
     <span class="app-credit">AstroLog © 2024</span>
   </footer>
 
-  <script defer src="/js/obs.js" is:inline></script>
   <script defer src="app.js" is:inline></script>
+  <script defer src="/js/obs.js" is:inline></script>
 </body>
 </html>
