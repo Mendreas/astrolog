@@ -7,6 +7,7 @@
  */
 let observacoes = [];
 let currentLang = 'pt';
+let currentTab = 'inicio';
 let currentFilter = 'todos';
 let searchQuery = '';
 let calendarioMes = new Date().getMonth();
@@ -20,7 +21,8 @@ let localState = { coords: null, city: null, country: null };
  */
 const i18n = {
   pt: {
-    faseLua: "Fase da Lua",
+    objectosObservados: "Objectos Observados",
+	faseLua: "Fase da Lua",
     mapaCeu: "Mapa do céu",
     inicio: "Início",
     home: "Início",
@@ -91,7 +93,8 @@ const i18n = {
     }
   },
   en: {
-    faseLua: "Moon Phase",
+    objectosObservados: "Observed Objects",
+	faseLua: "Moon Phase",
     mapaCeu: "Sky Map",
     inicio: "Home",
     home: "Home",
@@ -248,7 +251,6 @@ function getIcon(tipo) {
   return icons[tipo] || '❔';
 }
 
-/*
 /* ========== INICIALIZAÇÃO DE INTERFACE E TABS ========== */
 document.addEventListener('DOMContentLoaded', async () => {
   // Carrega observações da base de dados ao arrancar
@@ -257,30 +259,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   translateUI();
   updateRedFilterClass();
 
-  // Marca tab “Início” como ativa à partida
-  document.querySelectorAll(".tab-btn").forEach(btn => {
-    btn.classList.remove("active");
-    if (btn.getAttribute("data-tab") === "inicio") btn.classList.add("active");
-  });
-  document.querySelectorAll(".tab-content").forEach(sec => sec.classList.remove("active"));
-  document.getElementById("tab-inicio-content").classList.add("active");
-
-  // Navegação entre tabs (botões)
+  // Navegação entre tabs (corrigido: só 1 bloco, só uma tab ativa)
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      // Ativa/desativa botões
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-
-      // Ativa/desativa conteúdos
       const tabName = btn.getAttribute('data-tab');
       document.querySelectorAll('.tab-content').forEach(sec => sec.classList.remove('active'));
       const section = document.getElementById(`tab-${tabName}-content`);
       if (section) section.classList.add('active');
-
-      // Funções extra por tab
       if (tabName === 'inicio') atualizarTabInicio();
       if (tabName === 'calendario') renderCalendario();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.body.style.overflow = '';
     });
   });
 
@@ -338,13 +329,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         menu.remove();
       });
       menu.appendChild(allItem);
-      // Posição
+      // Posição do menu
       const rect = filterBtn.getBoundingClientRect();
       menu.style.position = 'absolute';
       menu.style.top = `${rect.bottom + window.scrollY}px`;
       menu.style.left = `${rect.left + window.scrollX}px`;
       menu.style.zIndex = 1000;
       document.body.appendChild(menu);
+      // Fecha dropdown ao clicar fora
+      const closeDropdown = (e) => {
+        if (!menu.contains(e.target) && e.target !== filterBtn) {
+          menu.remove();
+          document.removeEventListener('mousedown', closeDropdown);
+        }
+      };
+      document.addEventListener('mousedown', closeDropdown);
     });
   }
 
@@ -366,7 +365,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   const cancelBtn = document.getElementById('btnCancel');
   const form = document.getElementById('addObservationForm');
   const successMsg = document.getElementById('addSuccessMsg');
-  if (addBtn) addBtn.addEventListener('click', () => { if (modal) modal.style.display = 'flex'; });
+  function closeAddForm() {
+    if (form) form.reset();
+    if (modal) modal.style.display = 'none';
+    if (successMsg) successMsg.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+  if (addBtn) addBtn.addEventListener('click', () => {
+    if (modal) {
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+  });
   if (closeModalBtn) closeModalBtn.addEventListener('click', closeAddForm);
   if (cancelBtn) cancelBtn.addEventListener('click', closeAddForm);
   if (modal) modal.addEventListener('click', (e) => { if (e.target === modal) closeAddForm(); });
@@ -460,42 +470,52 @@ document.addEventListener('DOMContentLoaded', async () => {
       reader.readAsText(file);
     });
   }
-}); // NÃO retires este fecho!
 
+  // BOTÃO FILTRO VERMELHO ÚNICO (corrigido)
+  const redBtn = document.getElementById('redFilterBtn');
+  if (redBtn) {
+    redBtn.textContent = '🔴';
+    redBtn.style.display = 'inline-block';
+    let redActive = false;
+    redBtn.addEventListener('click', () => {
+      redActive = !redActive;
+      document.body.classList.toggle('red-filter', redActive);
+      redBtn.classList.toggle('active', redActive);
+    });
+  }
+
+  document.body.style.overflow = '';
+});
 
 /*
- * ========== FILTRO VERMELHO ==========
+ * ========== FILTRO VERMELHO (INTENSIDADE OPCIONAL) ==========
  */
 const redToggle = document.getElementById('redFilterToggle');
 const redSlider = document.getElementById('redFilterIntensity');
 const redButton = document.getElementById('toggleRedFilter');
 
-// Aplica/remover filtro vermelho visual
 function applyRedFilter(active) {
   if (active) {
     document.body.classList.add('red-filter');
-    const intensity = parseInt(redSlider.value);
-    document.body.style.backgroundColor = `rgba(255, 0, 0, ${intensity / 100})`;
+    if (redSlider) {
+      const intensity = parseInt(redSlider.value);
+      document.body.style.backgroundColor = `rgba(255, 0, 0, ${intensity / 100})`;
+    }
   } else {
     document.body.classList.remove('red-filter');
     document.body.style.backgroundColor = '';
   }
 }
+if (redButton) {
+  redButton.addEventListener('click', () => {
+    if (!redToggle) return;
+    redToggle.checked = !redToggle.checked;
+    applyRedFilter(redToggle.checked);
+  });
+}
+if (redToggle) redToggle.addEventListener('change', () => applyRedFilter(redToggle.checked));
+if (redSlider) redSlider.addEventListener('input', () => { if (redToggle.checked) applyRedFilter(true); });
 
-// Listeners do filtro vermelho
-redButton?.addEventListener('click', () => {
-  if (!redToggle) return;
-  redToggle.checked = !redToggle.checked;
-  applyRedFilter(redToggle.checked);
-});
-redToggle?.addEventListener('change', () => {
-  applyRedFilter(redToggle.checked);
-});
-redSlider?.addEventListener('input', () => {
-  if (redToggle.checked) applyRedFilter(true);
-});
-
-// Atualiza classes CSS conforme intensidade (caso uses classes extra)
 function updateRedFilterClass() {
   document.body.classList.remove('intensity-20', 'intensity-40', 'intensity-60', 'intensity-80', 'intensity-100');
   if (redToggle?.checked) {
@@ -510,8 +530,8 @@ function updateRedFilterClass() {
     document.body.classList.remove('red-filter');
   }
 }
-redToggle?.addEventListener('change', updateRedFilterClass);
-redSlider?.addEventListener('input', updateRedFilterClass);
+if (redToggle) redToggle.addEventListener('change', updateRedFilterClass);
+if (redSlider) redSlider.addEventListener('input', updateRedFilterClass);
 
 /*
  * ========== BACKUP PARA localStorage ==========
@@ -525,19 +545,8 @@ function atualizarBackupJSON() {
   }
 }
 
-// Fecha modal adicionar e limpa formulário
-function closeAddForm() {
-  const form = document.getElementById('addObservationForm');
-  const modal = document.getElementById('addObservationModal');
-  const successMsg = document.getElementById('addSuccessMsg');
-  if (form) form.reset();
-  if (modal) modal.style.display = 'none';
-  if (successMsg) successMsg.style.display = 'none';
-}
-
 /*
  * ========== RENDERIZAR OBSERVAÇÕES ==========
- * Renderiza cartões para cada observação conforme filtros e pesquisa.
  */
 function renderObservacoes() {
   const obsList = document.getElementById('observationsList');
@@ -626,9 +635,7 @@ function renderObservacoes() {
 
 /*
  * ========== VISUALIZAR, EDITAR E APAGAR OBSERVAÇÃO ==========
- * Usa modais dinâmicos.
  */
-// Visualizar
 window.viewObservation = function(id) {
   closeModal();
   const obs = observacoes.find(o => o.id === id);
@@ -662,7 +669,6 @@ window.viewObservation = function(id) {
   });
 };
 
-// Editar
 window.editObservation = function(id) {
   closeModal();
   const obs = observacoes.find(o => o.id === id);
@@ -752,7 +758,6 @@ window.editObservation = function(id) {
   });
 };
 
-// Apagar
 window.deleteObservacaoHandler = async function(id) {
   if (confirm(i18n[currentLang].delete + "?")) {
     await deleteObservacaoFromDB(id);
@@ -810,7 +815,6 @@ function renderCalendario() {
   }
 }
 
-// Mostra observações de um dia no calendário
 function mostrarObservacoesDoDia(dataISO) {
   const lista = observacoes.filter(o => o.data.startsWith(dataISO));
   const container = document.getElementById('calendarResults');
@@ -838,40 +842,28 @@ function getIcon(tipo) {
 /*
  * ========== UTILITÁRIOS E TRADUÇÃO ==========
  */
-// Formato YYYY-MM-DD local
 function normalizarDataLocal(data) {
   return new Date(data).toLocaleDateString('sv-SE');
 }
-
-// Primeira letra maiúscula
 function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-/*
- * ========== TRADUÇÃO DA UI ==========
- */
 function translateUI() {
   const t = i18n[currentLang];
   // Cabeçalho + filtros rápidos
   const searchInput = document.getElementById('searchInput');
   if (searchInput) searchInput.placeholder = t.searchPlaceholder;
-
   const filterTodos = document.querySelector('[data-filter="todos"]');
   if (filterTodos) filterTodos.textContent = t.all;
-
   const filterRecentes = document.querySelector('[data-filter="recentes"]');
   if (filterRecentes) filterRecentes.textContent = t.recent;
-
   const filterFavoritos = document.querySelector('[data-filter="favoritos"]');
   if (filterFavoritos) filterFavoritos.textContent = t.favorites;
-
   const filterByType = document.getElementById('filterByType');
   if (filterByType) filterByType.textContent = t.filterType;
-
   const langToggle = document.getElementById('langToggle');
   if (langToggle) langToggle.textContent = currentLang === 'pt' ? 'EN' : 'PT';
-
   // Modal Adicionar Observação
   const addObsTitle = document.getElementById('addObsTitle');
   if (addObsTitle) addObsTitle.textContent = t.addObsTitle;
@@ -904,7 +896,6 @@ function translateUI() {
   if (btnCancel) btnCancel.textContent = t.cancel;
   const addSuccessMsg = document.getElementById('addSuccessMsg');
   if (addSuccessMsg) addSuccessMsg.textContent = t.saveSuccess;
-
   // Select de tipos no formulário
   const tipoSelect = document.getElementById('inputTipo');
   if (tipoSelect) {
@@ -973,30 +964,27 @@ function translateUI() {
   atualizarTabInicio();
 }
 
-
 /*
  * ========== MODAIS GENÉRICOS ==========
  */
-// Fecha modal por ID
 window.closeModalById = function(id) {
   const modal = document.getElementById(id);
   if (modal) modal.remove();
+  document.body.style.overflow = '';
 };
-// Fecha todos os modais
 window.closeModal = function() {
   document.querySelectorAll('.modal').forEach(m => m.remove());
+  document.body.style.overflow = '';
 };
 
 /*
  * ========== INTEGRAÇÃO DA TAB INÍCIO ==========
- * Atualiza as secções "Início" com previsão, eventos e objetos.
  */
 async function atualizarTabInicio() {
   const t = i18n[currentLang];
   const dadosDiv = document.getElementById('astroapi-dados');
   const skyDiv = document.getElementById('astroapi-skymap');
   if (!dadosDiv || !skyDiv) return;
-  }
   dadosDiv.innerHTML = t.buscarTempo;
   try {
     await mostrarPrevisaoTempo(localState.coords);

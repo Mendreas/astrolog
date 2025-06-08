@@ -1,14 +1,13 @@
 ---
 ---
-<!DOCTYPE html>
-<html lang="pt">
-<head>
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AstroLog</title>
   <link rel="stylesheet" href="/style.css" />
   <link rel="manifest" href="/manifest.json" />
   <style>
+    /* Mantém aqui o teu CSS custom que estava em <style> */
     body { font-family: 'Segoe UI', Arial, sans-serif; background: #16161d; color: #eee; margin: 0; }
     header { background: #7e3ff2; padding: 0.6em 1.2em 0 1.2em; }
     .header-main { display: flex; flex-direction: column; }
@@ -71,29 +70,25 @@
     }
   </style>
 </head>
-<body>
-  <!-- Barra Superior: Linha 1 (Só o título AstroLog) -->
-      <div class="logo" style="font-size: 2rem; letter-spacing: 2px;">AstroLog</div>
-    </header>
 
-    <!-- Barra Superior: Linha 2 (Tabs + botoes) -->
-  <nav class="tabs-row">
-    <ul class="nav-tabs">
-      <li><button class="tab-btn active" data-tab="inicio">Início</button></li>
-      <li><button class="tab-btn" data-tab="objectos">Objectos</button></li>
-      <li><button class="tab-btn" data-tab="recursos">Recursos</button></li>
-      <li><button class="tab-btn" data-tab="links">Links Úteis</button></li>
-      <li><button class="tab-btn" data-tab="calendario">Calendário</button></li>
-      <li><button class="tab-btn" data-tab="config">Configurações</button></li>
-    </ul>
-	  <div class="header-controls">
-	    <input id="searchInput" type="text" placeholder="Pesquisar observações..." />
-	    <button id="langToggle" class="lang-btn">EN</button>
-	    <button id="redFilterBtn" class="red-filter-btn" title="Filtro Vermelho"></button>
-	    <button id="addObservationBtn" title="Adicionar Observação">＋</button>
-	  </div>
-	</nav>
-  </header>
+<div class="logo" style="font-size: 2rem; letter-spacing: 2px;">AstroLog</div>
+
+<nav class="tabs-row">
+  <ul class="nav-tabs">
+    <li><button class="tab-btn active" data-tab="inicio">Início</button></li>
+    <li><button class="tab-btn" data-tab="objectos">Objectos</button></li>
+    <li><button class="tab-btn" data-tab="recursos">Recursos</button></li>
+    <li><button class="tab-btn" data-tab="links">Links Úteis</button></li>
+    <li><button class="tab-btn" data-tab="calendario">Calendário</button></li>
+    <li><button class="tab-btn" data-tab="config">Configurações</button></li>
+  </ul>
+  <div class="header-controls">
+    <input id="searchInput" type="text" placeholder="Pesquisar observações..." />
+    <button id="langToggle" class="lang-btn">EN</button>
+    <button id="redFilterBtn" class="red-filter-btn" title="Filtro Vermelho"></button>
+    <button id="addObservationBtn" title="Adicionar Observação">＋</button>
+  </div>
+</nav>
 
   <div class="content">
 
@@ -133,7 +128,9 @@
         <div class="meteoblue-widgets">
 	    <!-- widgets Meteoblue mantidos -->
 	    <div>
-	      <iframe src="https://www.meteoblue.com/pt/tempo/widget/three?geoloc=detect&nocurrent=0&noforecast=0&days=4&tempunit=CELSIUS&windunit=KILOMETER_PER_HOUR&layout=image"
+	      <iframe
+		  title="Previsão do tempo meteoblue"
+		  src="https://www.meteoblue.com/pt/tempo/widget/three?geoloc=detect&nocurrent=0&noforecast=0&days=4&tempunit=CELSIUS&windunit=KILOMETER_PER_HOUR&layout=image"
 	        frameborder="0" scrolling="NO" allowtransparency="true"
 	        sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
 	        style="width: 460px; height: 590px"></iframe>
@@ -143,7 +140,9 @@
 	      </div>
 	    </div>
 	    <div>
-	      <iframe src="https://www.meteoblue.com/pt/tempo/widget/seeing?geoloc=detect&noground=0"
+	      <iframe 
+		  title="Observação meteoblue"
+		  src="https://www.meteoblue.com/pt/tempo/widget/seeing?geoloc=detect&noground=0"
 	        frameborder="0" scrolling="NO" allowtransparency="true"
 	        sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
 	        style="width: 520px; height: 775px"></iframe>
@@ -153,7 +152,9 @@
 	      </div>
 	    </div>
 	    <div>
-	      <iframe src="https://www.meteoblue.com/pt/tempo/mapas/widget?windAnimation=1&gust=1&satellite=1&cloudsAndPrecipitation=1&temperature=1&sunshine=1&extremeForecastIndex=1&geoloc=detect&tempunit=C&windunit=km%252Fh&lengthunit=metric&zoom=5&autowidth=manu"
+	      <iframe 
+		  title="Mapa meteoblue"
+		  src="https://www.meteoblue.com/pt/tempo/mapas/widget?windAnimation=1&gust=1&satellite=1&cloudsAndPrecipitation=1&temperature=1&sunshine=1&extremeForecastIndex=1&geoloc=detect&tempunit=C&windunit=km%252Fh&lengthunit=metric&zoom=5&autowidth=manu"
 	        frameborder="0" scrolling="NO" allowtransparency="true"
 	        sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
 	        style="width: 500px; height: 720px"></iframe>
@@ -333,12 +334,9 @@
   </div>
 
   <footer>
-    <span class="app-credit">AstroLog © 2024</span>
+    <span class="app-credit">AstroLog © 2025</span>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.min.js"></script>
-  <script defer src="/js/obs.js"></script>
-  <script defer src="/app.js"></script>
-  
-</body>
-</html>
+	<script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
+	<script src="/Obs.js" is:external></script>
+	<script src="/app.js" is:external></script>

@@ -997,3 +997,16 @@ button:focus-visible, select:focus-visible {
   outline-offset: 2px;
 }
 
+.red-filter-btn {
+  background: #b71c1c;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.4em 0.9em;
+  cursor: pointer;
+  font-weight: bold;
+}
+.red-filter-btn.active {
+  background: #ff5252;
+  color: gold;
+}
