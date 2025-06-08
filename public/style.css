@@ -11,6 +11,16 @@ body {
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Acessibilidade: focus visível */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+.dropdown-menu div:focus-visible {
+  outline: 2px solid #ffd700;
+  outline-offset: 2px;
 }
 
 /* ----------------------------------------------
@@ -43,7 +53,8 @@ header {
   outline: none;
 }
 
-.header-controls button {
+.header-controls button,
+#addObservationBtn {
   background: #2a2a2a;
   border: none;
   padding: 0.4rem 0.8rem;
@@ -52,21 +63,14 @@ header {
   cursor: pointer;
   font-size: 1rem;
   line-height: 1;
+  z-index: 20;
+  transition: background 0.2s;
 }
-
-/* Botão “＋” específico (Adicionar Observação) */
 #addObservationBtn {
-  background: #2a2a2a;
-  border: none;
   padding: 0 0.6rem;
-  border-radius: 12px;
-  color: white;
   font-size: 1.2rem;
-  line-height: 1;
-  cursor: pointer;
-  z-index: 20; /* garante que fique acima de overlays invisíveis */
 }
-
+.header-controls button:hover,
 #addObservationBtn:hover {
   background: #3a3a3a;
 }
@@ -105,7 +109,6 @@ nav button {
   padding: 0.5rem;
   transition: color 0.3s;
 }
-
 nav button:hover,
 nav button.active {
   color: #a463ff;
@@ -119,22 +122,16 @@ nav button.active {
   overflow-y: auto;
   padding: 2rem;
 }
-
 .tab {
   display: none;
 }
-
 .tab.active {
   display: block;
 }
 
-/* ==================================================
-   Ajustes de estilo para “colar” o calendário à esquerda
-   ================================================== */
-
-/* Por defeito, #tab-calendario herda de .tab { display: none; } */
-
-/* Quando #tab-calendario tiver .active, então mostramos em flex */
+/* ==============================================
+   Calendário: alinhado à esquerda e grid fixo
+   ============================================== */
 #tab-calendario.active {
   display: flex;
   flex-direction: column;
@@ -142,51 +139,84 @@ nav button.active {
   padding-left: 0;
   margin-left: 0;
 }
-
-/* Retira qualquer centralização do header (← Mês / Ano →) */
 #calendarHeader {
   display: flex;
   justify-content: flex-start;
   align-items: center;
   gap: 0.5rem;
   margin-top: 0.5rem;
+  font-size: 1.2rem;
   padding-left: 0;
 }
+#calendarHeader button {
+  background: #333;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#calendarHeader button:hover {
+  background: #4a4a4a;
+}
+#calendarMonthYear {
+  font-weight: bold;
+  text-align: left;
+}
 
-/* “Gruda” o grid dos dias na esquerda, sem margens adicionais */
 #calendarContainer {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 0.5rem;
-  max-width: 400px; /* ou a largura que preferir */
   margin-top: 1rem;
   margin-left: 0;
   padding-left: 0;
   justify-items: start;
+  max-width: calc(7 * 60px + 6 * 0.5rem);
 }
 
-/* Garante que nenhum texto fique centralizado por herança */
-#tab-calendario,
-#tab-calendario * {
-  text-align: left !important;
+.calendar-day {
+  width: 60px;
+  height: 60px;
+  background: #1a1a1a;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 400;
+  user-select: none;
+  transition: background 0.2s, color 0.2s;
 }
-
-/* Resultados (observações daquele dia) também alinhados à esquerda */
+.calendar-day.highlight {
+  background: #7b2cbf;
+  color: #fff;
+  font-weight: bold;
+}
+.calendar-day:hover {
+  background: #2a2a2a;
+  color: #fff;
+}
 #calendarResults {
   margin-top: 1rem;
   width: 100%;
   text-align: left;
 }
+#tab-calendario, #tab-calendario * { text-align: left !important; }
 
 /* ==============================================
-   ABA “Objectos”
+   ABA “Objectos” (filtros & cards)
    ============================================== */
 .filters {
   display: flex;
   gap: 1rem;
   margin-bottom: 1rem;
 }
-
 .filters button {
   background: #222;
   border: none;
@@ -196,7 +226,6 @@ nav button.active {
   cursor: pointer;
   transition: background 0.3s;
 }
-
 .filters button:hover,
 .filters button.active {
   background: #7b2cbf;
@@ -220,30 +249,26 @@ nav button.active {
   box-shadow: 0 2px 4px rgba(0,0,0,0.3);
   transition: transform 0.2s, box-shadow 0.2s;
 }
-
 .observation-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 4px 8px rgba(0,0,0,0.4);
 }
-
 .observation-card .title {
   font-weight: bold;
   font-size: 1.1rem;
 }
-
 .observation-card img {
   border-radius: 6px;
   max-height: 120px;
   object-fit: cover;
   width: 100%;
 }
-
-/* ===========================================
-   BOTÕES “VER / EDITAR / ELIMINAR” DENTRO DE .observation-card
-   =========================================== */
-.observation-card button {
-  background: #333; /* fundo cinza-escuro */
-  color: #fff;      /* texto branco */
+.observation-card button,
+.observation-card .view-btn,
+.observation-card .edit-btn,
+.observation-card .delete-btn {
+  background-color: #333;
+  color: #fff;
   border: none;
   border-radius: 6px;
   padding: 0.4rem 0.8rem;
@@ -252,24 +277,12 @@ nav button.active {
   transition: background 0.2s;
   font-size: 0.9rem;
 }
-
 .observation-card button:hover {
-  background: #4a4a4a; /* ligeiro clareamento ao passar o rato */
+  background: #4a4a4a;
 }
-
-/* Remove qualquer estilo “branco” herdado que possa estar a aparecer */
-.observation-card button,
-.observation-card .view-btn,
-.observation-card .edit-btn,
-.observation-card .delete-btn {
-  background-color: #333 !important;
-  color: #fff !important;
-}
-
-
 
 /* ==============================================
-   ABA “Recursos” e “Links Úteis”
+   Recursos & Links Úteis (cards uniformes)
    ============================================== */
 #tab-recursos ul.cards-list,
 #tab-links ul.cards-list {
@@ -281,7 +294,6 @@ nav button.active {
   margin: 0;
   padding: 0;
 }
-
 #tab-recursos ul.cards-list li,
 #tab-links ul.cards-list li {
   display: flex;
@@ -295,12 +307,10 @@ nav button.active {
   transition: transform 0.2s;
   position: relative;
 }
-
 #tab-recursos ul.cards-list li:hover,
 #tab-links ul.cards-list li:hover {
   transform: scale(1.03);
 }
-
 #tab-recursos ul.cards-list li a,
 #tab-links ul.cards-list li a {
   display: flex;
@@ -313,12 +323,10 @@ nav button.active {
   color: #fff;
   position: relative;
 }
-
 #tab-recursos ul.cards-list li a::after,
 #tab-links ul.cards-list li a::after {
   content: none !important;
 }
-
 .card-img {
   flex: 1;
   display: flex;
@@ -328,13 +336,11 @@ nav button.active {
   overflow: hidden;
   background-color: transparent;
 }
-
 .card-img img {
   max-width: 80%;
   max-height: 80%;
   object-fit: contain;
 }
-
 .card-desc {
   flex: 0 0 auto;
   padding: 0.4rem 0.8rem;
@@ -350,170 +356,7 @@ nav button.active {
 }
 
 /* ==============================================
-   CSS DO CALENDÁRIO (quase 60×60px por dia)
-   ============================================== */
-#calendarContainer {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 0.5rem;
-  margin-top: 1rem;
-
-  /* Limita a largura total a 7 células de ~60px + 6 gaps de 0.5rem (~8px cada) */
-  max-width: calc(7 * 60px + 6 * 0.5rem);
-  margin-left: 0;    /* alinha à esquerda */
-}
-
-.calendar-day {
-  /* Força dimensões fixas (aprox. 60×60px) */
-  width: 60px;
-  height: 60px;
-
-  /* Estilo básico */
-  background: #1a1a1a;
-  color: #fff;
-  text-align: center;
-  border-radius: 6px;
-  cursor: pointer;
-  border: 1px solid #333;
-
-  /* Centraliza o número dentro do quadrado */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  font-size: 0.9rem;
-  font-weight: 400;
-  user-select: none;
-  transition: background 0.2s, color 0.2s;
-}
-
-/* Destaca dias com observações */
-.calendar-day.highlight {
-  background: #7b2cbf;
-  color: #fff;
-  font-weight: bold;
-}
-
-/* Hover para deixar levemente mais claro */
-.calendar-day:hover {
-  background: #2a2a2a;
-  color: #fff;
-}
-
-/* ==============================================
-   Botões de navegação (← e →) do calendário
-   ============================================== */
-#calendarHeader {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  font-size: 1.2rem;
-  padding-left: 0;
-}
-
-#calendarHeader button {
-  background: #333;
-  color: white;
-  border: none;
-  padding: 0.4rem 0.8rem;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-#calendarHeader button:hover {
-  background: #4a4a4a;
-}
-
-/* Título “Mês Ano” dentro do próprio <h2> */
-#calendarMonthYear {
-  font-weight: bold;
-  text-align: left;  /* alinhado à esquerda */
-}
-
-/* ==============================================
-   ABA “Configurações”
-   ============================================== */
-#tab-configuracoes p {
-  font-size: 1rem;
-  color: #f0f0f0;
-  margin-bottom: 1rem;
-}
-
-.config-actions {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  margin-top: 1rem;
-}
-
-.config-actions button,
-.config-actions .import-label {
-  background: #2a2a2a;
-  color: white;
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  cursor: pointer;
-  border: none;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.config-actions .import-label {
-  position: relative;
-  overflow: hidden;
-}
-
-.config-actions .import-label input[type="file"] {
-  position: absolute;
-  top: 0;
-  left: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.config-actions button:hover,
-.config-actions .import-label:hover {
-  background: #3a3a3a;
-}
-
-/* ==============================================
-   O footer (com o “Filtro Vermelho” e o slider)
-   Fica ESCONDIDO, exceto quando a aba Configurações estiver ativa
-   ============================================== */
-footer {
-  margin-top: 2rem;
-  padding: 1rem 2rem;
-  background: #1a1a1a;
-  display: none; /* escondido por padrão */
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-footer.active {
-  display: flex !important;
-}
-
-footer label {
-  display: inline-block;
-  font-size: 1rem;
-  margin-right: 0.5rem;
-  cursor: pointer;
-}
-
-footer input[type="checkbox"] {
-  width: auto;
-}
-
-footer input[type="range"] {
-  width: 100%;
-}
-
-/* ==============================================
-   Modal de Adicionar/Ver/Editar Observação
+   Modal (Adicionar/Ver/Editar Observação)
    ============================================== */
 .modal {
   display: none;
@@ -527,24 +370,22 @@ footer input[type="range"] {
   justify-content: center;
   align-items: center;
 }
-
 .modal.open {
   display: flex;
 }
-
 .modal-content {
   background-color: #111;
   color: #fff;
   width: 90%;
   max-width: 500px;
-  max-height: 90vh;        /* Limita altura para permitir scroll interno */
+  max-height: 90vh;
   border-radius: 8px;
   padding: 20px;
   position: relative;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-  overflow-y: auto;        /* Permite rolagem interna se o conteúdo exceder */
+  overflow-y: auto;
+  box-sizing: border-box;
 }
-
 .modal-content .close {
   position: absolute;
   top: 12px;
@@ -553,20 +394,17 @@ footer input[type="range"] {
   color: white;
   cursor: pointer;
 }
-
 .modal-content form {
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
 }
-
 .modal-content form label {
   display: flex;
   flex-direction: column;
   font-size: 0.95rem;
   color: #ddd;
 }
-
 .modal-content form input[type="text"],
 .modal-content form input[type="date"],
 .modal-content form input[type="number"],
@@ -580,25 +418,36 @@ footer input[type="range"] {
   background: #222;
   color: white;
   font-size: 0.95rem;
+  box-sizing: border-box;
 }
-
 .modal-content form input[type="checkbox"] {
   margin-right: 0.4rem;
   width: auto;
 }
-
 .modal-content form textarea {
   resize: vertical;
   min-height: 60px;
 }
-
 .modal-buttons {
   display: flex;
   justify-content: flex-end;
   gap: 0.6rem;
   margin-top: 0.6rem;
 }
-
+.modal-content button[type="submit"] {
+  background: #7b2cbf;
+  color: white;
+}
+.modal-content button[type="submit"]:hover {
+  background: #9d4edd;
+}
+.modal-content button#cancelAdd {
+  background: #333;
+  color: #fff;
+}
+.modal-content button#cancelAdd:hover {
+  background: #444;
+}
 .modal-content button[type="submit"],
 .modal-content button#cancelAdd {
   padding: 0.5rem 1rem;
@@ -607,25 +456,14 @@ footer input[type="range"] {
   cursor: pointer;
   font-size: 0.95rem;
 }
-
-.modal-content button[type="submit"] {
-  background: #7b2cbf;
-  color: white;
-}
-.modal-content button[type="submit"]:hover {
-  background: #9d4edd;
-}
-
-.modal-content button#cancelAdd {
-  background: #333;
-  color: #fff;
-}
-.modal-content button#cancelAdd:hover {
-  background: #444;
-}
-
 .success-msg {
   color: #4caf50;
+  margin-top: 1rem;
+  font-weight: bold;
+  text-align: center;
+}
+.error-msg {
+  color: #f44336;
   margin-top: 1rem;
   font-weight: bold;
   text-align: center;
@@ -638,13 +476,11 @@ body.red-filter {
   background-color: #360700 !important;
   color: #ff5555 !important;
 }
-
 body.red-filter header {
   background-color: #360700 !important;
   background-image: none !important;
   color: #ff5555 !important;
 }
-
 body.red-filter.intensity-20 { background-color: #240000 !important; }
 body.red-filter.intensity-40 { background-color: #2c0000 !important; }
 body.red-filter.intensity-60 { background-color: #360700 !important; }
@@ -664,7 +500,6 @@ body.red-filter textarea {
   color: #ff5555 !important;
   border: 1px solid #550000 !important;
 }
-
 body.red-filter button,
 body.red-filter .dropdown-menu,
 body.red-filter .dropdown-menu div,
@@ -676,7 +511,6 @@ body.red-filter #tab-links img {
   color: #ff5555 !important;
   border-color: #550000 !important;
 }
-
 body.red-filter .filters button.active,
 body.red-filter nav button.active,
 body.red-filter .config-actions button,
@@ -685,11 +519,9 @@ body.red-filter .view-btn,
 body.red-filter button:hover {
   color: #ff8888 !important;
 }
-
 body.red-filter .modal {
   background-color: rgba(0, 0, 0, 0.85);
 }
-
 body.red-filter input::placeholder,
 body.red-filter textarea::placeholder {
   color: #A61500 !important;
@@ -702,7 +534,6 @@ body.light {
   background-color: #f0f0f0;
   color: #000;
 }
-
 body.light input,
 body.light select,
 body.light textarea {
@@ -710,9 +541,13 @@ body.light textarea {
   color: #000;
   border: 1px solid #ccc;
 }
+body.light #obsCard > div {
+  background: #e7e5fd;
+  color: #1a1338;
+}
 
 /* ==============================================
-   Dropdown-menu (para filtrar por tipo)
+   Dropdown-menu (filtros personalizados)
    ============================================== */
 .dropdown-menu {
   background-color: #222;
@@ -724,38 +559,130 @@ body.light textarea {
   font-size: 0.9rem;
   min-width: 150px;
   position: absolute;
+  z-index: 15;
 }
-
 .dropdown-menu div {
   padding: 0.4rem 0.6rem;
   cursor: pointer;
 }
-
-.dropdown-menu div:hover {
+.dropdown-menu div:hover, .dropdown-menu div:focus-visible {
   background-color: #444;
 }
 
-#addObservationModal input,
-#addObservationModal select,
-#addObservationModal textarea {
-  display: block;
-  width: 100%;
+/* ==============================================
+   Observação Finder & Cartão de Detalhes
+   ============================================== */
+#obsFinderBox {
+  background: #222241;
+  border-radius: 1em;
+  padding: 1.2em 2em;
+  margin: 2em 0 2em 0;
+  color: #fff;
+  box-shadow: 0 2px 12px #0004;
+  max-width: 550px;
+}
+#obsFinderBox label { margin-right: 0.6em; font-weight: 500; }
+#obsFinderBox input[type="number"], 
+#obsFinderBox input[type="datetime-local"] {
   background: #181818;
   color: #fff;
-  border: 1px solid #333;
-  padding: 0.5em;
-  margin: 0.25em 0 1em 0;
+  border: 1px solid #39396a;
   border-radius: 6px;
-  box-sizing: border-box;
+  padding: 0.3em 0.8em;
+  margin-right: 1em;
+  width: 110px;
+}
+#obsFinderBox select {
+  background: #232346;
+  color: #fff;
+  border: 1px solid #39396a;
+  border-radius: 6px;
+  padding: 0.4em 1em;
+  margin-top: 0.6em;
+  min-width: 260px;
   font-size: 1em;
 }
-
-#addObservationModal label {
-  display: block;
-  margin-bottom: 0.5em;
-  font-weight: 400;
+#obsFinderBox button {
+  background: #39396a;
   color: #fff;
+  border: none;
+  border-radius: 7px;
+  padding: 0.3em 0.8em;
+  margin-left: 0.5em;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background 0.2s;
 }
+#obsFinderBox button:hover {
+  background: #7b2cbf;
+}
+
+#obsCard {
+  margin-top: 1.4em;
+}
+#obsCard > div {
+  background: #39396a;
+  padding: 1.2em 1.7em;
+  border-radius: 1em;
+  color: #fff;
+  max-width: 420px;
+  box-shadow: 0 2px 12px #0007;
+  margin-top: 0.7em;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* ==============================================
+   Inputs/Selects Globais & Focus
+   ============================================== */
+input[type="number"],
+input[type="datetime-local"],
+select {
+  outline: none;
+  box-sizing: border-box;
+  transition: border 0.2s, background 0.2s;
+}
+input[type="number"]:focus,
+input[type="datetime-local"]:focus,
+select:focus {
+  border: 1.5px solid #7b2cbf;
+  background: #2a2a42;
+}
+select, option { color-scheme: dark; }
+body.red-filter select, body.red-filter option {
+  background: #2a0500 !important;
+  color: #ff5555 !important;
+}
+
+/* ==============================================
+   Responsividade (apenas em elementos chave)
+   ============================================== */
+@media (max-width: 650px) {
+  #obsFinderBox {
+    padding: 1em 0.5em;
+    max-width: 98vw;
+  }
+  #obsFinderBox label, 
+  #obsFinderBox input,
+  #obsFinderBox button {
+    display: block;
+    width: 100%;
+    margin: 0.5em 0;
+  }
+  #obsFinderBox select {
+    min-width: unset;
+    width: 100%;
+  }
+  .modal-content {
+    max-width: 98vw;
+    padding: 10px;
+  }
+}
+
+/* ==============================================
+   Outros: autocomplete, widgets, etc.
+   ============================================== */
+/* ... podes manter esta secção igual ao original ... */
+
 
 .autocomplete-wrapper {
   position: relative;
@@ -1064,3 +991,9 @@ body.red-filter select, body.red-filter option {
   background: #2a0500 !important;
   color: #ff5555 !important;
 }
+
+button:focus-visible, select:focus-visible {
+  outline: 2px solid #ffd700;
+  outline-offset: 2px;
+}
+
