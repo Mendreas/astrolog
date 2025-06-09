@@ -838,7 +838,7 @@ body.red-filter select, body.red-filter option {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: ##7e3ff2;
+  background: #7e3ff2;
   padding: 0.2rem 2rem;
   box-shadow: 0 1px 4px #0004;
 }
