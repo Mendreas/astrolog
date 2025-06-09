@@ -844,11 +844,19 @@ body.red-filter select, body.red-filter option {
   border-radius: 0.5rem 0.5rem 0 0;
   font-size: 1rem;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.2s, color 0.2s, border-bottom 0.2s;
   font-weight: 500;
+  border-bottom: 4px solid transparent; /* <- para permitir o underline só na tab ativa */
 }
-.tab-btn.active, .tab-btn:hover {
+.tab-btn.active {
   background: #212166;
+  color: #ffd700;
+  font-weight: bold;
+  border-bottom: 4px solid #ffd700; /* <- underline amarelo */
+}
+
+.tab-btn:hover:not(.active) {
+  background: #2c2179;
   color: #ffd700;
 }
 
