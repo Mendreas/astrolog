@@ -34,7 +34,8 @@ select:focus-visible,
 .content {
   flex: 1;
   overflow-y: auto;
-  padding: 2rem;
+  padding: 2rem 0 0 3rem;  /* topo, direita, baixo, esquerda */
+  text-align: left;        /* força alinhamento à esquerda */
 }
 .tab {
   display: none;
