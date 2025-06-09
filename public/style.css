@@ -34,8 +34,10 @@ select:focus-visible,
 .content {
   flex: 1;
   overflow-y: auto;
-  padding: 2rem 0 0 3rem;  /* topo, direita, baixo, esquerda */
-  text-align: left;        /* força alinhamento à esquerda */
+  padding: 2rem 0 0 3rem;   /* topo, direita, baixo, esquerda */
+  text-align: left;
+  margin: 0;                /* IMPORTANTE: remove auto-centro */
+  max-width: 100%; 
 }
 .tab {
   display: none;
@@ -689,18 +691,35 @@ body.red-filter select, body.red-filter option {
 .meteoblue-widgets {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.5rem;
-  justify-content: center;
-  align-items: flex-start;
+  gap: 2rem;                       /* espaçamento entre widgets */
+  justify-content: flex-start;     /* alinhados à esquerda */
+  align-items: flex-start;         /* alinhados pelo topo */
   margin-bottom: 1.5rem;
+  margin-top: 1.2rem;              /* se quiseres algum espaço no topo */
+  width: 100%;
 }
 
 .meteoblue-widgets > div {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 320px;
-  max-width: 100%;
+  min-width: 320px;     /* largura mínima de cada widget */
+  max-width: 100%;      /* nunca passa o tamanho do container */
+  flex: 1 1 350px;      /* tenta manter ~350px, mas adapta ao espaço */
+  box-sizing: border-box;
+}
+
+/* Responsividade extra para ecrãs pequenos */
+@media (max-width: 1100px) {
+  .meteoblue-widgets > div {
+    flex: 1 1 100%;
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 700px) {
+  .meteoblue-widgets {
+    flex-direction: column;
+    gap: 1rem;
+  }
 }
 
 .meteoblue-widgets iframe {
