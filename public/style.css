@@ -848,27 +848,35 @@ body.red-filter select, body.red-filter option {
   list-style: none;
   padding: 0;
   margin: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  width: 100%;
 }
-.nav-tabs .tab {
-  background: #32325c;
-  color: #fff;
-  border-radius: 0.5rem 0.5rem 0 0;
-  padding: 0.5rem 1.2rem;
-  border: none;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-  font-size: 1rem;
-  font-weight: 500;
-}
-.nav-tabs .tab.active, .nav-tabs .tab:hover {
-  background: #212166;
-  color: #ffd700;
-}
+
 .nav-actions {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
+
+.tab-btn {
+  white-space: nowrap;
+  padding: 0.5em 1.5em;
+  background: #39396a;
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem 0.5rem 0 0;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  font-weight: 500;
+}
+.tab-btn.active, .tab-btn:hover {
+  background: #212166;
+  color: #ffd700;
+}
+
+
 .search-bar { /* etc... */ }
 .lang-btn, .red-filter-btn, .add-btn { /* ... */ }
 .dot { width: 20px; height: 20px; border-radius: 50%; background: radial-gradient(circle at 60% 40%, #ff6767 0%, #c40000 100%); display: block; }
@@ -878,32 +886,6 @@ body.red-filter select, body.red-filter option {
   gap: 2rem;
 }
 .widget-meteo, .widget-seeing { min-width: 380px; }
-
-#obsFinderBox {
-  background: #222241;
-  border-radius: 1em;
-  padding: 1.2em 2em;
-  margin: 2em 0 2em 0;
-  color: #fff;
-  box-shadow: 0 2px 12px #0004;
-  max-width: 550px;
-}
-
-#obsFinderBox label {
-  margin-right: 0.6em;
-  font-weight: 500;
-}
-
-#obsFinderBox input[type="number"], 
-#obsFinderBox input[type="datetime-local"] {
-  background: #181818;
-  color: #fff;
-  border: 1px solid #39396a;
-  border-radius: 6px;
-  padding: 0.3em 0.8em;
-  margin-right: 1em;
-  width: 110px;
-}
 
 #obsFinderBox select {
   background: #232346;
@@ -916,36 +898,6 @@ body.red-filter select, body.red-filter option {
   font-size: 1em;
 }
 
-#obsFinderBox button {
-  background: #39396a;
-  color: #fff;
-  border: none;
-  border-radius: 7px;
-  padding: 0.3em 0.8em;
-  margin-left: 0.5em;
-  font-size: 1em;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-#obsFinderBox button:hover {
-  background: #7b2cbf;
-}
-
-#obsCard {
-  margin-top: 1.4em;
-}
-
-#obsCard > div {
-  background: #39396a;
-  padding: 1.2em 1.7em;
-  border-radius: 1em;
-  color: #fff;
-  max-width: 420px;
-  box-shadow: 0 2px 12px #0007;
-  margin-top: 0.7em;
-  transition: background 0.3s, color 0.3s;
-}
 body.light #obsCard > div {
   background: #e7e5fd;
   color: #1a1338;
@@ -954,16 +906,6 @@ body.red-filter #obsCard > div {
   background: #2a0500 !important;
   color: #ff5555 !important;
   border: 1px solid #550000 !important;
-}
-
-input[type="number"], input[type="datetime-local"], select {
-  outline: none;
-  box-sizing: border-box;
-  transition: border 0.2s, background 0.2s;
-}
-input[type="number"]:focus, input[type="datetime-local"]:focus, select:focus {
-  border: 1.5px solid #7b2cbf;
-  background: #2a2a42;
 }
 
 @media (max-width: 650px) {
@@ -982,19 +924,6 @@ input[type="number"]:focus, input[type="datetime-local"]:focus, select:focus {
     min-width: unset;
     width: 100%;
   }
-}
-
-select, option {
-  color-scheme: dark;
-}
-body.red-filter select, body.red-filter option {
-  background: #2a0500 !important;
-  color: #ff5555 !important;
-}
-
-button:focus-visible, select:focus-visible {
-  outline: 2px solid #ffd700;
-  outline-offset: 2px;
 }
 
 .red-filter-btn {
@@ -1065,9 +994,11 @@ button:focus-visible, select:focus-visible {
 
 /* ========== BARRA DE CONTROLOS NA MESMA LINHA DAS TABS ========== */
 .header-controls {
-  flex-direction: row !important;
-  align-items: center !important;
-  margin-left: 1.2rem !important;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.6em;
+  margin-left: 1.2rem;
 }
 @media (max-width: 900px) {
   .header-controls { flex-wrap: wrap !important; }
