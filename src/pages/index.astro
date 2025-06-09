@@ -7,20 +7,82 @@
   <link rel="stylesheet" href="/style.css" />
   <link rel="manifest" href="/manifest.json" />
   <style>
-    /* Mantém aqui o teu CSS custom que estava em <style> */
     body { font-family: 'Segoe UI', Arial, sans-serif; background: #16161d; color: #eee; margin: 0; }
     header { background: #7e3ff2; padding: 0.6em 1.2em 0 1.2em; }
     .header-main { display: flex; flex-direction: column; }
     .header-row { display: flex; align-items: center; justify-content: space-between; gap: 0.6em; }
     #logo { margin: 0; color: #fff; font-weight: bold; letter-spacing: 2px; }
-    .header-controls { display: flex; gap: 0.6em; align-items: center; }
-    .header-controls input[type="text"], #searchInput { border-radius: 10px; border: none; padding: 0.4em 0.8em; font-size: 1em; background: #232346; color: #fff; }
-    .header-controls button, .lang-btn, .red-btn, .add-btn { border: none; border-radius: 8px; background: #222241; color: #fff; font-weight: bold; padding: 0.4em 0.9em; cursor: pointer; }
-    .header-controls button#toggleRedFilter, .red-btn { background: #2e2e50; }
-    .header-controls button.active { background: #2e2e50; color: gold; }
-    nav.tabs-row { display: flex; justify-content: center; gap: 0.3em; background: #222; padding: 0.5em 0 0.1em 0; border-bottom: 2px solid #7e3ff2; }
-    .tab-btn { background: #39396a; color: #fff; border: none; border-radius: 8px 8px 0 0; padding: 0.7em 2em; font-size: 1.05em; cursor: pointer; transition: 0.1s; }
-    .tab-btn.active { background: #2e2e50; color: gold; font-weight: bold; border-bottom: 3px solid gold; }
+    .nav-actions { display: flex; gap: 0.6em; align-items: center; background: transparent; }
+    .nav-actions input[type="text"], #searchInput { border-radius: 10px; border: none; padding: 0.4em 0.8em; font-size: 1em; background: #232346; color: #fff; }
+    .nav-actions button, .lang-btn, .red-btn, .add-btn { border: none; border-radius: 8px; background: #222241; color: #fff; font-weight: bold; padding: 0.4em 0.9em; cursor: pointer; }
+    .nav-actions button#toggleRedFilter, .red-btn { background: #2e2e50; }
+    .nav-actions button.active { background: #2e2e50; color: gold; }
+    .main-navbar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      background: #7e3ff2;
+      padding: 0 1.5rem;
+      height: 64px;
+      gap: 1.5rem;
+      border-bottom: none;
+      box-shadow: none;
+    }
+    .logo {
+      color: #fff;
+      font-size: 2rem;
+      font-weight: bold;
+      background: transparent;
+      margin-right: 1.2rem;
+      letter-spacing: 2px;
+      padding: 0;
+    }
+    .tabs-row {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.3em;
+      background: transparent; /* só a main-navbar tem fundo! */
+      padding: 0.5em 0 0.1em 0;
+      border-bottom: 2px solid #7e3ff2;
+      width: 100%;
+    }
+    .nav-tabs {
+      display: flex;
+      gap: 0.6rem;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      background: transparent;
+    }
+    .tab-btn {
+      background: #39396a;
+      color: #fff;
+      border: none;
+      border-radius: 8px 8px 0 0;
+      padding: 0.7em 2em;
+      font-size: 1.05em;
+      cursor: pointer;
+      transition: 0.1s;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .tab-btn.active, .tab-btn:hover {
+      background: #212166;
+      color: gold;
+      font-weight: bold;
+      border-bottom: 3px solid gold;
+    }
+    body {
+      margin: 0;
+    }
+    /* Remove possíveis margens/paddings extras */
+    .main-navbar, .logo, .nav-tabs, .nav-actions {
+      margin: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
     .content { max-width: 1200px; margin: 2em auto; padding: 0 1em; }
     .tab { display: none; min-height: 60vh; }
     .tab.active { display: block; animation: fadeIn 0.4s; }
@@ -63,7 +125,7 @@
     footer { background: #222; color: #eee; display: flex; align-items: center; gap: 1em; justify-content: flex-end; padding: 0.7em 1em; font-size: 0.96em; }
     footer .app-credit { margin-left: auto; color: #aaa; font-size: 0.96em; }
     @media (max-width: 700px) {
-      .header-row, .header-controls { flex-direction: column; align-items: stretch; gap: 0.6em; }
+      .header-row, .nav-actions { flex-direction: column; align-items: stretch; gap: 0.6em; }
       nav.tabs-row { flex-direction: column; gap: 0.2em; }
       .content { padding: 0 0.3em; }
       .meteoblue-widgets { flex-direction: column; gap: 1em; }
@@ -73,24 +135,24 @@
 
 <div class="main-navbar">
   <div class="logo">AstroLog</div>
-<nav class="tabs-row">
-  <ul class="nav-tabs">
-	<li><button class="tab-btn active" data-tab="inicio" title="Início">Início</button></li>
-	<li><button class="tab-btn" data-tab="objectos" title="Objectos Observados">Objectos</button></li>
-	<li><button class="tab-btn" data-tab="recursos" title="Recursos úteis">Recursos</button></li>
-	<li><button class="tab-btn" data-tab="links" title="Links Úteis">Links Úteis</button></li>
-	<li><button class="tab-btn" data-tab="calendario" title="Calendário de Observações">Calendário</button></li>
-	<li><button class="tab-btn" data-tab="config" title="Configurações da App">Configurações</button></li>
-  </ul>
-  <div class="header-controls">
-    <button id="langToggle" class="lang-btn">EN</button>
-    <button id="redFilterBtn" class="red-filter-btn" title="Filtro Vermelho"></button>
-    <button id="addObservationBtn" title="Adicionar Observação">＋</button>
-  </div>
-</nav>
+  <nav class="tabs-row">
+    <ul class="nav-tabs">
+      <li><button class="tab-btn active" data-tab="inicio" title="Início">Início</button></li>
+      <li><button class="tab-btn" data-tab="objectos" title="Objectos Observados">Objectos</button></li>
+      <li><button class="tab-btn" data-tab="recursos" title="Recursos úteis">Recursos</button></li>
+      <li><button class="tab-btn" data-tab="links" title="Links Úteis">Links Úteis</button></li>
+      <li><button class="tab-btn" data-tab="calendario" title="Calendário de Observações">Calendário</button></li>
+      <li><button class="tab-btn" data-tab="config" title="Configurações da App">Configurações</button></li>
+    </ul>
+    <div class="nav-actions">
+      <button id="langToggle" class="lang-btn">EN</button>
+      <button id="redFilterBtn" class="red-filter-btn" title="Filtro Vermelho"></button>
+      <button id="addObservationBtn" title="Adicionar Observação">＋</button>
+    </div>
+  </nav>
 </div>
 
-  <div class="content">
+<div class="content">
 
     <!-- INÍCIO -->
     <section id="tab-inicio-content" class="tab-content active">
