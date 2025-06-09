@@ -23,64 +23,9 @@ select:focus-visible,
   outline-offset: 2px;
 }
 
-/* ----------------------------------------------
-   CABEÇALHO
-   ---------------------------------------------- */
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 48px;
-  background: linear-gradient(to right, #7b2cbf, #9d4edd);
-  padding: 0 1rem;
-  color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-  z-index: 10;
-  position: relative;
-}
-
 #addObservationBtn {
   padding: 0 0.6rem;
   font-size: 1.2rem;
-}
-
-/* ----------------------------------------------
-   LAYOUT PRINCIPAL
-   ---------------------------------------------- */
-main {
-  display: flex;
-  flex: 1;
-  /* overflow: hidden; */
-}
-
-/* ----------------------------------------------
-   NAV (abas)
-   ---------------------------------------------- */
-nav {
-  display: flex;
-  flex-direction: column;
-  background: #1a1a1a;
-  padding: 1rem;
-  width: 180px;
-  height: 100%;
-  gap: 2rem;
-  position: relative;
-  z-index: 5;
-}
-
-nav button {
-  background: none;
-  border: none;
-  color: #bbb;
-  text-align: left;
-  font-size: 1rem;
-  cursor: pointer;
-  padding: 0.5rem;
-  transition: color 0.3s;
-}
-nav button:hover,
-nav button.active {
-  color: #a463ff;
 }
 
 /* ----------------------------------------------
@@ -831,10 +776,6 @@ body.red-filter select, body.red-filter option {
   padding: 0.5em 0 0.1em 0;
   border-bottom: 2px solid #7e3ff2;
   width: 100%;
-}
-
-body {
-  margin: 0;
 }
 
 /* Remove possíveis margens/paddings extras */
