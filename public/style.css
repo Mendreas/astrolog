@@ -443,25 +443,6 @@ body.red-filter textarea::placeholder {
 }
 
 /* ==============================================
-   Light mode
-   ============================================== */
-body.light {
-  background-color: #f0f0f0;
-  color: #000;
-}
-body.light input,
-body.light select,
-body.light textarea {
-  background: #fff;
-  color: #000;
-  border: 1px solid #ccc;
-}
-body.light #obsCard > div {
-  background: #e7e5fd;
-  color: #1a1338;
-}
-
-/* ==============================================
    Dropdown-menu (filtros personalizados)
    ============================================== */
 .dropdown-menu {
@@ -813,6 +794,26 @@ body.red-filter select, body.red-filter option {
   gap: 0.7em;
   margin-left: auto;
   background: transparent;
+}
+
+.lang-btn,
+.red-filter-btn,
+#addObservationBtn {
+  background: #242347 !important;
+  color: #fff !important;
+  border: none;
+  border-radius: 12px;
+  font-weight: bold;
+  padding: 0.4em 1.1em;
+  cursor: pointer;
+  font-size: 1em;
+  margin-left: 0.4em;
+  transition: background 0.2s, color 0.2s;
+  box-shadow: 0 2px 8px #0002;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .tab-btn {

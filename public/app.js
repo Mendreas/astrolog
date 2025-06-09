@@ -956,7 +956,7 @@ function translateUI() {
   });
   // Configurações
   if (document.getElementById('tab-config-content')) {
-    const configP = document.querySelector('#tab-configuracoes p');
+    const configP = document.querySelector('#tab-config-content p');
     if (configP) {
       configP.textContent = currentLang === 'pt'
         ? "Ajustes e configurações da aplicação."
