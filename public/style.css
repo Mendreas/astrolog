@@ -838,7 +838,7 @@ body.red-filter select, body.red-filter option {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #181820;
+  background: ##7e3ff2;
   padding: 0.2rem 2rem;
   box-shadow: 0 1px 4px #0004;
 }
@@ -859,10 +859,19 @@ body.red-filter select, body.red-filter option {
   justify-content: space-between;
   align-items: center;
   gap: 0.3em;
-  background: #222;
+  background: #7e3ff2;
   padding: 0.5em 0 0.1em 0;
   border-bottom: 2px solid #7e3ff2;
   width: 100%;
+}
+
+.logo {
+  color: #fff;
+  background: #7e3ff2; /* mesmo tom */
+  padding: 0.5em 2em 0.5em 1.2em; /* igual à tab row */
+  font-size: 2rem;
+  font-weight: bold;
+  letter-spacing: 2px;
 }
 
 .nav-actions {
