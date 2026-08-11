@@ -636,9 +636,10 @@ body{font-family:'Raleway',sans-serif;background:var(--bg-deep);color:var(--text
 .sidebar.collapsed .nav-item span[data-i18n]{display:none !important;}
 .sidebar.collapsed .nav-item{justify-content:center !important;padding:10px 4px !important;}
 .sidebar.collapsed .badge-pill{display:none !important;}
+/* ── IPAD (768-1366px) ── */
 @media(max-width:1366px){
   :root{--sidebar-w:52px;}
-  .sidebar{width:52px;min-width:52px;transition:width .25s ease;}
+  .sidebar{width:52px;min-width:52px;transition:width .25s ease, min-width .25s ease;}
   .sidebar .nav-item span[data-i18n]{display:none !important;}
   .sidebar .nav-item{justify-content:center !important;padding:8px 2px !important;}
   .sidebar .sidebar-logo{justify-content:center;padding:8px 4px;}
@@ -652,6 +653,15 @@ body{font-family:'Raleway',sans-serif;background:var(--bg-deep);color:var(--text
   .sidebar.expanded .sidebar-logo img{max-width:160px;display:block;}
   .sidebar.expanded .nav-section-label{display:block !important;}
   .sidebar.expanded .badge-pill{display:inline-flex !important;}
+}
+/* ── IPHONE (max 767px) ── */
+@media(max-width:767px){
+  :root{--sidebar-w:0px;}
+  .sidebar{width:0;min-width:0;overflow:hidden;}
+  .sidebar.expanded{width:240px;min-width:240px;overflow:hidden;
+    position:fixed;left:0;top:0;height:100vh;z-index:200;box-shadow:4px 0 20px rgba(0,0,0,.5);}
+  .main{width:100vw;}
+  #sidebarToggle{position:fixed;top:14px;left:10px;z-index:300;}
 }
 </style>
 </head>
@@ -717,7 +727,7 @@ body{font-family:'Raleway',sans-serif;background:var(--bg-deep);color:var(--text
       </span><span data-i18n="nav_diary">Diário</span>
     </div>
 
-    <div style="border-top:1px solid rgba(200,155,50,.12);margin:4px 0 2px"></div>
+    <div style="border-top:1px solid rgba(200,155,50,.12);margin:14px 0 6px"></div>
     <div class="nav-item" onclick="navigate('definicoes')" style="margin-bottom:0">
       <span class="nav-icon">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
@@ -727,25 +737,16 @@ body{font-family:'Raleway',sans-serif;background:var(--bg-deep);color:var(--text
 
 </aside>
 
-<!-- SIDEBAR TOGGLE - floats at edge, always visible -->
-<button id="sidebarToggle" onclick="toggleSidebar()" title="Expandir/Colapsar menu"
-  style="position:fixed;left:var(--sidebar-w);top:50%;transform:translateY(-50%);
-  z-index:100;width:16px;height:48px;
-  background:#13263D;
-  border:1px solid rgba(200,155,50,.35);border-left:none;
-  border-radius:0 8px 8px 0;
-  cursor:pointer;color:rgba(200,155,50,.8);font-size:14px;
-  display:flex;align-items:center;justify-content:center;
-  transition:left .25s ease;
-  padding:0">‹</button>
-
 <!-- MAIN -->
 <div class="main">
   <!-- TOPBAR -->
   <div class="topbar">
-    <div>
-      <div class="page-title" id="topbarTitle">Dashboard</div>
-      <div class="page-sub" id="topbarSub">Aqui está o resumo das tuas observações.</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button id="sidebarToggle" onclick="toggleSidebar()" title="Expandir/Colapsar menu" style="width:34px;height:34px;background:rgba(200,155,50,.1);border:1px solid rgba(200,155,50,.25);border-radius:8px;cursor:pointer;color:rgba(200,155,50,.8);font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s">☰</button>
+      <div>
+        <div class="page-title" id="topbarTitle">Dashboard</div>
+        <div class="page-sub" id="topbarSub">Aqui está o resumo das tuas observações.</div>
+      </div>
     </div>
     <div class="topbar-actions">
       <div class="lang-toggle">
@@ -792,21 +793,30 @@ body{font-family:'Raleway',sans-serif;background:var(--bg-deep);color:var(--text
           <button class="autofill-btn" id="autofillBtn" onclick="autofillObject()">🔍 Auto-fill</button>
         </div>
       </div>
-      <div class="form-group" id="catalogFieldGroup">
-        <label class="form-label">Catálogo (opcional)</label>
-        <div style="display:flex;gap:8px;align-items:center">
-          <select class="form-select" id="fCatalog" style="max-width:180px" onchange="onCatalogSelect(this.value)">
-            <option value="">— Nenhum —</option>
-            <optgroup label="Messier"><option value="M1">M1</option><option value="M2">M2</option><option value="M3">M3</option><option value="M4">M4</option><option value="M5">M5</option><option value="M6">M6</option><option value="M7">M7</option><option value="M8">M8</option><option value="M9">M9</option><option value="M10">M10</option><option value="M11">M11</option><option value="M12">M12</option><option value="M13">M13</option><option value="M14">M14</option><option value="M15">M15</option><option value="M16">M16</option><option value="M17">M17</option><option value="M18">M18</option><option value="M19">M19</option><option value="M20">M20</option><option value="M21">M21</option><option value="M22">M22</option><option value="M23">M23</option><option value="M24">M24</option><option value="M25">M25</option><option value="M26">M26</option><option value="M27">M27</option><option value="M28">M28</option><option value="M29">M29</option><option value="M30">M30</option><option value="M31">M31</option><option value="M32">M32</option><option value="M33">M33</option><option value="M34">M34</option><option value="M35">M35</option><option value="M36">M36</option><option value="M37">M37</option><option value="M38">M38</option><option value="M39">M39</option><option value="M40">M40</option><option value="M41">M41</option><option value="M42">M42</option><option value="M43">M43</option><option value="M44">M44</option><option value="M45">M45</option><option value="M46">M46</option><option value="M47">M47</option><option value="M48">M48</option><option value="M49">M49</option><option value="M50">M50</option><option value="M51">M51</option><option value="M52">M52</option><option value="M53">M53</option><option value="M54">M54</option><option value="M55">M55</option><option value="M56">M56</option><option value="M57">M57</option><option value="M58">M58</option><option value="M59">M59</option><option value="M60">M60</option><option value="M61">M61</option><option value="M62">M62</option><option value="M63">M63</option><option value="M64">M64</option><option value="M65">M65</option><option value="M66">M66</option><option value="M67">M67</option><option value="M68">M68</option><option value="M69">M69</option><option value="M70">M70</option><option value="M71">M71</option><option value="M72">M72</option><option value="M73">M73</option><option value="M74">M74</option><option value="M75">M75</option><option value="M76">M76</option><option value="M77">M77</option><option value="M78">M78</option><option value="M79">M79</option><option value="M80">M80</option><option value="M81">M81</option><option value="M82">M82</option><option value="M83">M83</option><option value="M84">M84</option><option value="M85">M85</option><option value="M86">M86</option><option value="M87">M87</option><option value="M88">M88</option><option value="M89">M89</option><option value="M90">M90</option><option value="M91">M91</option><option value="M92">M92</option><option value="M93">M93</option><option value="M94">M94</option><option value="M95">M95</option><option value="M96">M96</option><option value="M97">M97</option><option value="M98">M98</option><option value="M99">M99</option><option value="M100">M100</option><option value="M101">M101</option><option value="M102">M102</option><option value="M103">M103</option><option value="M104">M104</option><option value="M105">M105</option><option value="M106">M106</option><option value="M107">M107</option><option value="M108">M108</option><option value="M109">M109</option><option value="M110">M110</option></optgroup>
-            <optgroup label="Caldwell"><option value="C1">C1</option><option value="C2">C2</option><option value="C3">C3</option><option value="C4">C4</option><option value="C5">C5</option><option value="C6">C6</option><option value="C7">C7</option><option value="C8">C8</option><option value="C9">C9</option><option value="C10">C10</option><option value="C11">C11</option><option value="C12">C12</option><option value="C13">C13</option><option value="C14">C14</option><option value="C15">C15</option><option value="C16">C16</option><option value="C17">C17</option><option value="C18">C18</option><option value="C19">C19</option><option value="C20">C20</option><option value="C21">C21</option><option value="C22">C22</option><option value="C23">C23</option><option value="C24">C24</option><option value="C25">C25</option><option value="C26">C26</option><option value="C27">C27</option><option value="C28">C28</option><option value="C29">C29</option><option value="C30">C30</option><option value="C31">C31</option><option value="C32">C32</option><option value="C33">C33</option><option value="C34">C34</option><option value="C35">C35</option><option value="C36">C36</option><option value="C37">C37</option><option value="C38">C38</option><option value="C39">C39</option><option value="C40">C40</option><option value="C41">C41</option><option value="C42">C42</option><option value="C43">C43</option><option value="C44">C44</option><option value="C45">C45</option><option value="C46">C46</option><option value="C47">C47</option><option value="C48">C48</option><option value="C49">C49</option><option value="C50">C50</option><option value="C51">C51</option><option value="C52">C52</option><option value="C53">C53</option><option value="C54">C54</option><option value="C55">C55</option><option value="C56">C56</option><option value="C57">C57</option><option value="C58">C58</option><option value="C59">C59</option><option value="C60">C60</option><option value="C61">C61</option><option value="C62">C62</option><option value="C63">C63</option><option value="C64">C64</option><option value="C65">C65</option><option value="C66">C66</option><option value="C67">C67</option><option value="C68">C68</option><option value="C69">C69</option><option value="C70">C70</option><option value="C71">C71</option><option value="C72">C72</option><option value="C73">C73</option><option value="C74">C74</option><option value="C75">C75</option><option value="C76">C76</option><option value="C77">C77</option><option value="C78">C78</option><option value="C79">C79</option><option value="C80">C80</option><option value="C81">C81</option><option value="C82">C82</option><option value="C83">C83</option><option value="C84">C84</option><option value="C85">C85</option><option value="C86">C86</option><option value="C87">C87</option><option value="C88">C88</option><option value="C89">C89</option><option value="C90">C90</option><option value="C91">C91</option><option value="C92">C92</option><option value="C93">C93</option><option value="C94">C94</option><option value="C95">C95</option><option value="C96">C96</option><option value="C97">C97</option><option value="C98">C98</option><option value="C99">C99</option><option value="C100">C100</option><option value="C101">C101</option><option value="C102">C102</option><option value="C103">C103</option><option value="C104">C104</option><option value="C105">C105</option><option value="C106">C106</option><option value="C107">C107</option><option value="C108">C108</option><option value="C109">C109</option></optgroup>
-            <optgroup label="NGC / Outro">
-              <option value="ngc_manual">NGC / Outro (escrever)</option>
-            </optgroup>
-          </select>
-          <input class="form-input" id="fCatalogManual" placeholder="ex: NGC 224" style="display:none;flex:1" oninput="onCatalogManualInput(this.value)">
-          <span id="fCatalogLabel" style="font-size:11px;color:rgba(200,155,50,.6);min-width:60px"></span>
+      <div class="form-group">
+        <label class="form-label">Catálogos (opcional)</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:100px">
+            <label style="font-size:10.5px;color:var(--text-muted);letter-spacing:.06em">MESSIER</label>
+            <select class="form-select" id="fCatalog" onchange="onCatalogSelect(this.value)">
+              <option value="">—</option>
+              <option value="M1">M1</option><option value="M2">M2</option><option value="M3">M3</option><option value="M4">M4</option><option value="M5">M5</option><option value="M6">M6</option><option value="M7">M7</option><option value="M8">M8</option><option value="M9">M9</option><option value="M10">M10</option><option value="M11">M11</option><option value="M12">M12</option><option value="M13">M13</option><option value="M14">M14</option><option value="M15">M15</option><option value="M16">M16</option><option value="M17">M17</option><option value="M18">M18</option><option value="M19">M19</option><option value="M20">M20</option><option value="M21">M21</option><option value="M22">M22</option><option value="M23">M23</option><option value="M24">M24</option><option value="M25">M25</option><option value="M26">M26</option><option value="M27">M27</option><option value="M28">M28</option><option value="M29">M29</option><option value="M30">M30</option><option value="M31">M31</option><option value="M32">M32</option><option value="M33">M33</option><option value="M34">M34</option><option value="M35">M35</option><option value="M36">M36</option><option value="M37">M37</option><option value="M38">M38</option><option value="M39">M39</option><option value="M40">M40</option><option value="M41">M41</option><option value="M42">M42</option><option value="M43">M43</option><option value="M44">M44</option><option value="M45">M45</option><option value="M46">M46</option><option value="M47">M47</option><option value="M48">M48</option><option value="M49">M49</option><option value="M50">M50</option><option value="M51">M51</option><option value="M52">M52</option><option value="M53">M53</option><option value="M54">M54</option><option value="M55">M55</option><option value="M56">M56</option><option value="M57">M57</option><option value="M58">M58</option><option value="M59">M59</option><option value="M60">M60</option><option value="M61">M61</option><option value="M62">M62</option><option value="M63">M63</option><option value="M64">M64</option><option value="M65">M65</option><option value="M66">M66</option><option value="M67">M67</option><option value="M68">M68</option><option value="M69">M69</option><option value="M70">M70</option><option value="M71">M71</option><option value="M72">M72</option><option value="M73">M73</option><option value="M74">M74</option><option value="M75">M75</option><option value="M76">M76</option><option value="M77">M77</option><option value="M78">M78</option><option value="M79">M79</option><option value="M80">M80</option><option value="M81">M81</option><option value="M82">M82</option><option value="M83">M83</option><option value="M84">M84</option><option value="M85">M85</option><option value="M86">M86</option><option value="M87">M87</option><option value="M88">M88</option><option value="M89">M89</option><option value="M90">M90</option><option value="M91">M91</option><option value="M92">M92</option><option value="M93">M93</option><option value="M94">M94</option><option value="M95">M95</option><option value="M96">M96</option><option value="M97">M97</option><option value="M98">M98</option><option value="M99">M99</option><option value="M100">M100</option><option value="M101">M101</option><option value="M102">M102</option><option value="M103">M103</option><option value="M104">M104</option><option value="M105">M105</option><option value="M106">M106</option><option value="M107">M107</option><option value="M108">M108</option><option value="M109">M109</option><option value="M110">M110</option>
+            </select>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:100px">
+            <label style="font-size:10.5px;color:var(--text-muted);letter-spacing:.06em">CALDWELL</label>
+            <select class="form-select" id="fCatalogC">
+              <option value="">—</option>
+              <option value="C1">C1</option><option value="C2">C2</option><option value="C3">C3</option><option value="C4">C4</option><option value="C5">C5</option><option value="C6">C6</option><option value="C7">C7</option><option value="C8">C8</option><option value="C9">C9</option><option value="C10">C10</option><option value="C11">C11</option><option value="C12">C12</option><option value="C13">C13</option><option value="C14">C14</option><option value="C15">C15</option><option value="C16">C16</option><option value="C17">C17</option><option value="C18">C18</option><option value="C19">C19</option><option value="C20">C20</option><option value="C21">C21</option><option value="C22">C22</option><option value="C23">C23</option><option value="C24">C24</option><option value="C25">C25</option><option value="C26">C26</option><option value="C27">C27</option><option value="C28">C28</option><option value="C29">C29</option><option value="C30">C30</option><option value="C31">C31</option><option value="C32">C32</option><option value="C33">C33</option><option value="C34">C34</option><option value="C35">C35</option><option value="C36">C36</option><option value="C37">C37</option><option value="C38">C38</option><option value="C39">C39</option><option value="C40">C40</option><option value="C41">C41</option><option value="C42">C42</option><option value="C43">C43</option><option value="C44">C44</option><option value="C45">C45</option><option value="C46">C46</option><option value="C47">C47</option><option value="C48">C48</option><option value="C49">C49</option><option value="C50">C50</option><option value="C51">C51</option><option value="C52">C52</option><option value="C53">C53</option><option value="C54">C54</option><option value="C55">C55</option><option value="C56">C56</option><option value="C57">C57</option><option value="C58">C58</option><option value="C59">C59</option><option value="C60">C60</option><option value="C61">C61</option><option value="C62">C62</option><option value="C63">C63</option><option value="C64">C64</option><option value="C65">C65</option><option value="C66">C66</option><option value="C67">C67</option><option value="C68">C68</option><option value="C69">C69</option><option value="C70">C70</option><option value="C71">C71</option><option value="C72">C72</option><option value="C73">C73</option><option value="C74">C74</option><option value="C75">C75</option><option value="C76">C76</option><option value="C77">C77</option><option value="C78">C78</option><option value="C79">C79</option><option value="C80">C80</option><option value="C81">C81</option><option value="C82">C82</option><option value="C83">C83</option><option value="C84">C84</option><option value="C85">C85</option><option value="C86">C86</option><option value="C87">C87</option><option value="C88">C88</option><option value="C89">C89</option><option value="C90">C90</option><option value="C91">C91</option><option value="C92">C92</option><option value="C93">C93</option><option value="C94">C94</option><option value="C95">C95</option><option value="C96">C96</option><option value="C97">C97</option><option value="C98">C98</option><option value="C99">C99</option><option value="C100">C100</option><option value="C101">C101</option><option value="C102">C102</option><option value="C103">C103</option><option value="C104">C104</option><option value="C105">C105</option><option value="C106">C106</option><option value="C107">C107</option><option value="C108">C108</option><option value="C109">C109</option>
+            </select>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:100px">
+            <label style="font-size:10.5px;color:var(--text-muted);letter-spacing:.06em">NGC / OUTRO</label>
+            <input class="form-input" id="fCatalogManual" placeholder="ex: NGC 224">
+          </div>
         </div>
       </div>
+
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label">Tipo</label>
@@ -901,29 +911,28 @@ body{font-family:'Raleway',sans-serif;background:var(--bg-deep);color:var(--text
         <label class="form-label">Notas / Descrição</label>
         <textarea class="form-textarea" id="fDesc" placeholder="O que viste? Cores, detalhe, condições..."></textarea>
       </div>
-      <!-- Reference image (from autofill/Wikipedia) -->
-      <div class="form-group" id="refImgGroup">
-        <label class="form-label" style="color:rgba(200,155,50,.7)">📷 Imagem de Referência (Wikipedia / Auto-fill)</label>
-        <input class="form-input" id="fRefImgUrl" placeholder="Preenchida automaticamente pelo Auto-fill" style="font-size:11px;color:var(--text-muted)">
-        <div id="refImgPreviewWrap" style="display:none;margin-top:6px;position:relative">
-          <div style="font-size:10.5px;color:rgba(200,155,50,.5);margin-bottom:4px;letter-spacing:.05em">REFERÊNCIA — não é a tua foto</div>
-          <img id="refImgPreview" style="width:100%;height:90px;object-fit:cover;border-radius:8px;opacity:.7;border:1px dashed rgba(200,155,50,.3)">
-          <button onclick="clearRefImage()" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:12px">✕</button>
+      <!-- Reference image (auto-fill) + User images side by side -->
+      <div class="form-group">
+        <label class="form-label" style="color:rgba(200,155,50,.7)">📷 Imagem de Referência (Auto-fill)</label>
+        <div id="refImgPreviewWrap" style="display:none;margin-top:4px;position:relative">
+          <img id="refImgPreview" style="width:100%;height:80px;object-fit:cover;border-radius:8px;opacity:.65;border:1px dashed rgba(200,155,50,.3)">
+          <span style="position:absolute;bottom:4px;left:6px;font-size:9px;color:rgba(200,155,50,.7);background:rgba(0,0,0,.6);padding:1px 5px;border-radius:3px">REFERÊNCIA</span>
+          <button onclick="clearRefImage()" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);border:none;color:#fff;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:11px">✕</button>
         </div>
+        <input class="form-input" id="fRefImgUrl" placeholder="Preenchida automaticamente" style="font-size:11px;color:var(--text-muted);margin-top:4px">
       </div>
-      <!-- Observation image (user's own photo) -->
+      <!-- User photos - multiple -->
       <div class="form-group">
-        <label class="form-label">📸 A Tua Foto da Observação</label>
-        <input class="form-input" id="fImgUrl" placeholder="URL de imagem (opcional)">
+        <label class="form-label">📸 As Tuas Fotos da Observação</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px" id="userImgThumbs"></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="form-input" id="fImgUrl" placeholder="URL de imagem" style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();addImgFromUrl();}">
+          <button onclick="addImgFromUrl()" class="btn btn-secondary btn-sm">+ URL</button>
+        </div>
+        <input type="file" accept="image/*" multiple id="fImgFile" onchange="handleMultiImageUpload(event)" style="color:var(--text-dim);font-size:12px;width:100%;margin-top:6px">
       </div>
-      <div class="form-group">
-        <label class="form-label">Upload da Tua Imagem</label>
-        <input type="file" accept="image/*" id="fImgFile" onchange="handleImageUpload(event)" style="color:var(--text-dim);font-size:13px;width:100%">
-      </div>
-      <div id="imgPreviewWrap" style="display:none;margin-bottom:12px;position:relative">
-        <img id="imgPreview" style="width:100%;height:120px;object-fit:cover;border-radius:8px">
-        <button onclick="clearImage()" style="position:absolute;top:6px;right:6px;background:var(--danger);border:none;color:#fff;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:14px">✕</button>
-      </div>
+      <input type="hidden" id="fImagesJSON" value="[]">
+
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
         <input type="checkbox" id="fFav" style="width:16px;height:16px;accent-color:var(--accent)">
         <label for="fFav" style="font-size:13px;cursor:pointer">⭐ Marcar como Favorito</label>
@@ -1648,9 +1657,13 @@ function obsCardHTML(obs){
   const fallbackIcon = typeIcon(obs.type, 48);
   return `<div class="obs-card" onclick="showDetail(${obs.id})">
     <div class="obs-card-img">
-      ${obs.image
-        ? '<img src="'+obs.image+'" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display=\'none\'">'
-        : fallbackIcon}
+      ${(()=>{
+        const imgs = obs.images&&obs.images.length ? obs.images : obs.image ? [obs.image] : [];
+        const src = imgs[0]||'';
+        return src ? '<img src="'+src+'" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display=\'none\'">'
+          + (imgs.length>1?'<div style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;font-size:9px;padding:1px 5px;border-radius:10px">+' + (imgs.length-1) + '</div>':'')
+          : fallbackIcon;
+      })()}
     </div>
     <div class="obs-card-body">
       <div style="display:flex;align-items:start;justify-content:space-between">
@@ -2191,9 +2204,7 @@ function pageGaleria(){
     return obs.map(o=>
       '<div class="gal-card" onclick="openGalImg('+o.id+')">'
       +'<div class="gal-img-wrap">'
-      +'<img src="'+o.image+'" alt="'+o.name+'" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block">'
-      +'<div class="gal-overlay">'
-      +'<div style="font-size:12.5px;font-weight:600;color:#fff;font-family:Cinzel,serif">'+o.name+'</div>'
+      +'<img src="'+(o.images&&o.images.length?o.images[0]:o.image)+'" alt="'+o.name+'" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block">'      +((o.images&&o.images.length>1)?'<div style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.65);color:#fff;font-size:10px;padding:2px 6px;border-radius:10px">📷 '+o.images.length+'</div>':'')      +'<div class="gal-overlay">'      +'<div style="font-size:12.5px;font-weight:600;color:#fff;font-family:Cinzel,serif">'+o.name+'</div>'
       +'<div style="font-size:11px;color:rgba(255,255,255,.55);margin-top:2px">'+(o.date||'')+(o.location?' · '+o.location:'')+'</div>'
       +'</div></div></div>'
     ).join('');
@@ -2258,8 +2269,22 @@ function openGalImg(id){
   // The fullscreen div is inside the page content — find it
   const fs = document.getElementById('galFullscreen');
   if(!fs) return;
-  document.getElementById('galFsImg').src = o.image;
+  const allImgs = o.images&&o.images.length ? o.images : o.image ? [o.image] : [];
+  document.getElementById('galFsImg').src = allImgs[0]||o.image||'';
   document.getElementById('galFsName').textContent = o.name;
+  // Add thumbnail strip if multiple images
+  const strip = document.getElementById('galFsStrip');
+  if(strip){
+    if(allImgs.length > 1){
+      strip.style.display='flex';
+      strip.innerHTML = allImgs.map((src,i)=>
+        '<img src="'+src+'" onclick="document.getElementById(\'galFsImg\').src=this.src;[...document.getElementById(\'galFsStrip\').querySelectorAll(\'img\')].forEach(el=>el.style.outline=\'none\');this.style.outline=\'2px solid #e8b84b\'" '
+        +'style="width:52px;height:52px;object-fit:cover;border-radius:6px;cursor:pointer;'+(i===0?'outline:2px solid #e8b84b':'')+';">'
+      ).join('');
+    } else {
+      strip.style.display='none';
+    }
+  }
   document.getElementById('galFsDate').textContent = (o.date||'')+(o.location?' · '+o.location:'');
   fs.style.display = 'flex';
   document.body.style.overflow = 'hidden';
@@ -2456,8 +2481,17 @@ function pageDefinicoes(){
         <input class="form-input" id="settName" value="${username}">
       </div>
       <div class="form-group">
-        <label class="form-label">${lang==='pt'?'Título':'Title'}</label>
-        <input class="form-input" id="settRole" value="${role}">
+        <label class="form-label">${lang==='pt'?'Título (automático)':'Title (automatic)'}</label>
+        <div style="background:var(--bg-hover);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+          <div style="font-size:14px;font-weight:600;color:#e8b84b;font-family:'Cinzel',serif">${getAstroTitle(observations.length)}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:3px">${observations.length} ${lang==='pt'?'observações':'observations'}</div>
+          ${(()=>{
+            const next = ASTRO_TITLES.find(t=>t[0]>observations.length);
+            return next ? '<div style="font-size:10.5px;color:rgba(200,155,50,.5);margin-top:4px">'+
+              (lang==='pt'?'Próximo: ':'Next: ')+'<b style="color:rgba(200,155,50,.75)">'+next[2]+'</b>'+
+              ' em '+(next[0]-observations.length)+' obs</div>' : '';
+          })()}
+        </div>
       </div>
     </div>
     <button class="btn btn-primary btn-sm" onclick="saveProfile()">${t('save')}</button>
@@ -2555,8 +2589,11 @@ function openAddModal(id=null){
   } else {
     document.getElementById('fName').value='';
   const fcat=document.getElementById('fCatalog'); if(fcat) fcat.value='';
-  const fcatm=document.getElementById('fCatalogManual'); if(fcatm){fcatm.value='';fcatm.style.display='none';}
-  const frl=document.getElementById('fCatalogLabel'); if(frl) frl.textContent='';
+  const fcatc=document.getElementById('fCatalogC'); if(fcatc) fcatc.value='';
+  const fcatm=document.getElementById('fCatalogManual'); if(fcatm) fcatm.value='';
+  const fImagesJSON=document.getElementById('fImagesJSON'); if(fImagesJSON) fImagesJSON.value='[]';
+  const thumbs=document.getElementById('userImgThumbs'); if(thumbs) thumbs.innerHTML='';
+  userImages=[];
   const frw=document.getElementById('refImgPreviewWrap'); if(frw) frw.style.display='none';
   const fri=document.getElementById('fRefImgUrl'); if(fri) fri.value='';
     document.getElementById('fType').value='star';
@@ -2601,9 +2638,10 @@ function saveObservation(){
     distance:document.getElementById('fDist').value,
     distanceUnit:document.getElementById('fDistUnit').value,
     description:document.getElementById('fDesc').value,
-    image:imgFinal,
-    refImage:document.getElementById('fRefImgUrl')?.value||'',
-    ngc:getCatalogValue(),
+    image: userImages.length > 0 ? userImages[0].src : '',
+    images: userImages.map(i=>i.src),
+    refImage: document.getElementById('fRefImgUrl')?.value||'',
+    ngc: getCatalogValue(),
     favorite:document.getElementById('fFav').checked,
   };
 
@@ -2680,9 +2718,87 @@ function handleImageUpload(e){
 }
 
 function clearRefImage(){
-  document.getElementById('fRefImgUrl').value='';
-  document.getElementById('refImgPreviewWrap').style.display='none';
+  const el=document.getElementById('fRefImgUrl'); if(el) el.value='';
+  const wrap=document.getElementById('refImgPreviewWrap'); if(wrap) wrap.style.display='none';
 }
+
+// Multi-image management
+let userImages = []; // {type:'url'|'data', src:string}
+
+function renderUserImgThumbs(){
+  const el = document.getElementById('userImgThumbs');
+  if(!el) return;
+  el.innerHTML = userImages.map((img,i)=>
+    '<div style="position:relative;display:inline-block">'
+    +'<img src="'+img.src+'" onclick="openGalleryModal('+i+')" style="width:72px;height:72px;object-fit:cover;border-radius:7px;cursor:pointer;border:2px solid '+(i===0?'rgba(200,155,50,.6)':'var(--border)')+';" title="'+(i===0?'Foto principal':'Clica para ver')+'">'
+    +(i===0?'<span style="position:absolute;bottom:2px;left:2px;font-size:8px;background:rgba(200,155,50,.8);color:#000;padding:1px 4px;border-radius:3px">PRINCIPAL</span>':'')
+    +'<button onclick="removeUserImg('+i+')" style="position:absolute;top:-4px;right:-4px;background:var(--danger);border:none;color:#fff;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:10px;line-height:18px;text-align:center">✕</button>'
+    +'</div>'
+  ).join('');
+  const hidden = document.getElementById('fImagesJSON');
+  if(hidden) hidden.value = JSON.stringify(userImages.map(i=>i.src));
+}
+
+function addImgFromUrl(){
+  const inp = document.getElementById('fImgUrl');
+  const url = (inp?.value||'').trim();
+  if(!url) return;
+  userImages.push({type:'url', src:url});
+  renderUserImgThumbs();
+  inp.value='';
+}
+
+function handleMultiImageUpload(ev){
+  const files = Array.from(ev.target.files||[]);
+  files.forEach(file=>{
+    const reader = new FileReader();
+    reader.onload = e=>{
+      userImages.push({type:'data', src:e.target.result});
+      renderUserImgThumbs();
+    };
+    reader.readAsDataURL(file);
+  });
+  ev.target.value='';
+}
+
+function removeUserImg(i){
+  userImages.splice(i,1);
+  renderUserImgThumbs();
+}
+
+let galleryModalImages = [];
+function openGalleryModal(idx){
+  galleryModalImages = userImages.map(i=>i.src);
+  openImgViewer(galleryModalImages, idx);
+}
+function openImgViewer(imgs, idx){
+  const overlay = document.getElementById('imgViewerOverlay');
+  if(!overlay){ buildImgViewer(); }
+  window._viewerImgs = imgs;
+  window._viewerIdx  = idx||0;
+  updateImgViewer();
+  document.getElementById('imgViewerOverlay').style.display='flex';
+}
+function buildImgViewer(){
+  const d = document.createElement('div');
+  d.id='imgViewerOverlay';
+  d.style='position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px';
+  d.innerHTML='<button onclick="closeImgViewer()" style="position:absolute;top:16px;right:20px;background:none;border:none;color:#fff;font-size:28px;cursor:pointer">✕</button>'
+    +'<button onclick="prevImg()" style="position:absolute;left:16px;background:none;border:none;color:#fff;font-size:36px;cursor:pointer">‹</button>'
+    +'<img id="imgViewerEl" style="max-width:90vw;max-height:80vh;border-radius:10px;object-fit:contain">'
+    +'<div id="imgViewerCounter" style="color:rgba(255,255,255,.5);font-size:13px"></div>'
+    +'<button onclick="nextImg()" style="position:absolute;right:16px;background:none;border:none;color:#fff;font-size:36px;cursor:pointer">›</button>';
+  document.body.appendChild(d);
+}
+function updateImgViewer(){
+  const imgs=window._viewerImgs||[]; const idx=window._viewerIdx||0;
+  const el=document.getElementById('imgViewerEl'); if(el) el.src=imgs[idx]||'';
+  const ct=document.getElementById('imgViewerCounter'); if(ct) ct.textContent=(idx+1)+' / '+imgs.length;
+}
+function prevImg(){ window._viewerIdx=Math.max(0,(window._viewerIdx||0)-1); updateImgViewer(); }
+function nextImg(){ window._viewerIdx=Math.min((window._viewerImgs||[]).length-1,(window._viewerIdx||0)+1); updateImgViewer(); }
+function closeImgViewer(){ const o=document.getElementById('imgViewerOverlay'); if(o) o.style.display='none'; }
+
 function clearImage(){
   document.getElementById('imgPreview').src='';
   document.getElementById('imgPreviewWrap').style.display='none';
@@ -2754,10 +2870,29 @@ function saveWishlist(){
 // ── DATA ─────────────────────────────────────────────────────────────────────
 function exportData(){
   const data = {observations, wishlist, exportDate:new Date().toISOString()};
-  const uri='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(data,null,2));
-  const a=document.createElement('a');a.href=uri;
-  a.download=`astrologs-backup-${new Date().toISOString().split('T')[0]}.json`;
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  const json = JSON.stringify(data, null, 2);
+  const filename = 'astrologs-backup-'+new Date().toISOString().split('T')[0]+'.json';
+
+  // Try Web Share API first (works on iOS Safari)
+  if(navigator.share){
+    const file = new File([json], filename, {type:'application/json'});
+    navigator.share({files:[file], title:'AstroLogs Backup'})
+      .then(()=>toast(lang==='pt'?'Partilhado com sucesso!':'Shared successfully!'))
+      .catch(e=>{ if(e.name!=='AbortError') fallbackExport(json, filename); });
+    return;
+  }
+  fallbackExport(json, filename);
+}
+
+function fallbackExport(json, filename){
+  // Fallback: open JSON in new tab (user can save from there)
+  const blob = new Blob([json], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
   toast(lang==='pt'?'JSON exportado!':'JSON exported!');
 }
 
@@ -3069,29 +3204,28 @@ function onCatalogManualInput(val){
   if(label) label.textContent = val ? '✓ '+val : '';
 }
 function getCatalogValue(){
-  const sel = document.getElementById('fCatalog');
-  if(!sel) return '';
-  if(sel.value === 'ngc_manual'){
-    return (document.getElementById('fCatalogManual')?.value||'').trim();
-  }
-  return sel.value;
+  const m = (document.getElementById('fCatalog')?.value||'').trim();
+  const c = (document.getElementById('fCatalogC')?.value||'').trim();
+  const n = (document.getElementById('fCatalogManual')?.value||'').trim();
+  // Return all non-empty catalog IDs joined
+  return [m,c,n].filter(Boolean).join(', ');
 }
 function setCatalogField(val){
   if(!val) return;
-  const sel = document.getElementById('fCatalog');
-  if(!sel) return;
-  // Try to match Messier or Caldwell
-  const upper = val.toUpperCase().trim();
-  let found = false;
-  for(let opt of sel.options){
-    if(opt.value.toUpperCase() === upper){ sel.value = opt.value; found=true; break; }
-  }
-  if(!found){
-    sel.value = 'ngc_manual';
-    const manual = document.getElementById('fCatalogManual');
-    if(manual){ manual.value = val; manual.style.display='block'; }
-  }
-  onCatalogSelect(sel.value);
+  const vals = val.split(',').map(v=>v.trim());
+  vals.forEach(v=>{
+    const u = v.toUpperCase();
+    if(/^M\d+$/.test(u)){
+      const sel = document.getElementById('fCatalog');
+      if(sel) sel.value = u;
+    } else if(/^C\d+$/.test(u)){
+      const sel = document.getElementById('fCatalogC');
+      if(sel) sel.value = u;
+    } else {
+      const inp = document.getElementById('fCatalogManual');
+      if(inp) inp.value = v;
+    }
+  });
 }
 
 function toggleSidebar(){
@@ -3100,14 +3234,30 @@ function toggleSidebar(){
   const isMobile = window.innerWidth <= 1366;
   if(isMobile){
     const isExpanded = sb.classList.toggle('expanded');
-    btn.style.left = isExpanded ? '250px' : 'var(--sidebar-w)';
-    btn.textContent = isExpanded ? '›' : '‹';
+    btn.textContent = isExpanded ? '✕' : '☰';
+    btn.title = isExpanded ? 'Fechar menu' : 'Abrir menu';
   } else {
     const isCollapsed = sb.classList.toggle('collapsed');
-    btn.style.left = isCollapsed ? 'var(--sidebar-w)' : '260px';
-    btn.textContent = isCollapsed ? '›' : '‹';
+    btn.textContent = isCollapsed ? '☰' : '✕';
     localStorage.setItem('sidebarCollapsed', isCollapsed ? '1' : '0');
   }
+}
+
+const ASTRO_TITLES = [
+  [1,2,'Primeira Luz'],[3,5,'Olheiro Celeste'],[6,10,'Aprendiz das Estrelas'],
+  [11,20,'Explorador Celeste'],[21,35,'Cartógrafo do Céu'],[36,50,'Viajante Estelar'],
+  [51,75,'Caçador de Fotões'],[76,100,'Navegador Cósmico'],[101,150,'Sentinela das Estrelas'],
+  [151,200,'Explorador do Sistema Solar'],[201,300,'Peregrino da Via Láctea'],
+  [301,400,'Mestre do Céu Profundo'],[401,500,'Cronista do Cosmos'],
+  [501,650,'Guardião da Via Láctea'],[651,800,'Embaixador das Estrelas'],
+  [801,999,'Mestre do Universo Observável'],[1000,1499,'Lenda Cósmica'],
+  [1500,2499,'Arquivista do Universo'],[2500,4999,'Senhor das Mil Noites'],[5000,999999,'Imortal das Estrelas']
+];
+function getAstroTitle(n){
+  for(const [min,max,title] of ASTRO_TITLES){
+    if(n>=min && n<=max) return title;
+  }
+  return 'Explorador do Céu';
 }
 document.addEventListener('DOMContentLoaded', ()=>{
   // Global error handler
@@ -3125,17 +3275,20 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const sb = document.getElementById('sidebar');
     if(!sb) return;
     if(window.innerWidth <= 1366){
-      sb.classList.remove('expanded'); // icons-only on iPad
-      if(btn) btn.style.left='var(--sidebar-w)';
-    } else if(localStorage.getItem('sidebarCollapsed')==='1'){
-      sb.classList.add('collapsed');
-      const btn = document.getElementById('sidebarToggle');
-      if(btn) btn.style.transform='scaleX(-1)';
+      // iPad/phone: start collapsed (icons only)
+      sb.classList.remove('expanded');
+      if(btn) btn.textContent = '☰';
+    } else {
+      // Desktop: restore collapsed state from localStorage
+      if(localStorage.getItem('sidebarCollapsed')==='1'){
+        sb.classList.add('collapsed');
+        if(btn) btn.textContent = '☰';
+      }
     }
   })();
 
   const _uname = localStorage.getItem('astro_username')||'Mendreas';
-  const _urole = localStorage.getItem('astro_role')||'Explorador do Céu';
+  const _urole = getAstroTitle(observations.length);
   const _uinit = _uname[0].toUpperCase();
   // Topbar user
   const _tbn = document.getElementById('userNameTopbar');
