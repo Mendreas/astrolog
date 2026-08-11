@@ -2583,8 +2583,20 @@ function openAddModal(id=null){
       document.getElementById('fDesc').value=obs.description||'';
       document.getElementById('fImgUrl').value=(obs.image&&!obs.image.startsWith('data:'))?obs.image:'';
       document.getElementById('fFav').checked=obs.favorite||false;
-      if(obs.image){ document.getElementById('imgPreview').src=obs.image; document.getElementById('imgPreviewWrap').style.display='block'; }
-      else { document.getElementById('imgPreviewWrap').style.display='none'; }
+      // Load existing images into userImages array
+      userImages = [];
+      if(obs.images && obs.images.length){
+        userImages = obs.images.map(src=>({type:'url',src}));
+      } else if(obs.image){
+        userImages = [{type:'url', src:obs.image}];
+      }
+      renderUserImgThumbs();
+      // Load ref image
+      if(obs.refImage){
+        const ri=document.getElementById('fRefImgUrl'); if(ri) ri.value=obs.refImage;
+        const rw=document.getElementById('refImgPreviewWrap'); if(rw) rw.style.display='block';
+        const re=document.getElementById('refImgPreview'); if(re) re.src=obs.refImage;
+      }
     }
   } else {
     document.getElementById('fName').value='';
@@ -2612,7 +2624,7 @@ function openAddModal(id=null){
     document.getElementById('fDesc').value='';
     document.getElementById('fImgUrl').value='';
     document.getElementById('fFav').checked=false;
-    document.getElementById('imgPreviewWrap').style.display='none';
+    const _ipw=document.getElementById('imgPreviewWrap'); if(_ipw) _ipw.style.display='none';
   }
   openModal('obsModal');
 }
@@ -2662,37 +2674,149 @@ async function autofillObject(){
   if(!name){ toast(lang==='pt'?'Introduz um nome primeiro':'Enter a name first','error'); return; }
   const btn = document.getElementById('autofillBtn');
   btn.disabled=true; btn.textContent='⏳ A carregar...';
-  try {
-    const wikiRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`);
-    const wiki = wikiRes.ok ? await wikiRes.json() : null;
-    if(wiki?.extract){
-      document.getElementById('fDesc').value = wiki.extract.split('. ').slice(0,3).join('. ')+'.';
+
+  // Helper: parse {{RA|h|m|s}} or {{DEC|d|m|s}}
+  function parseRAtemplate(t){
+    const m=t.match(/\{\{RA\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/i);
+    if(m) return `${m[1]}h${m[2].padStart(2,'0')}m${m[3]}s`;
+    return null;
+  }
+  function parseDECtemplate(t){
+    const m=t.match(/\{\{DEC\s*\|\s*([+-]?[\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/i);
+    if(m) return `${parseFloat(m[1])>=0?'+':''}${m[1]}°${m[2].padStart(2,'0')}'${m[3]}"`;
+    return null;
+  }
+  // Helper: extract first number from a field value (strips templates, refs, etc.)
+  function firstNum(t){
+    const m=t.replace(/\{\{[^}]+\}\}/g,' ').replace(/<[^>]+>/g,' ').match(/([+-]?[\d]+(?:\.[\d]+)?)/);
+    return m ? parseFloat(m[1]) : null;
+  }
+  // Helper: extract distance in ly
+  function parseDist(val){
+    // {{val|2570|90|...}} → 2570
+    // {{convert|7.22|+/-|...|Mpc|e6ly...}} → 7.22e6 ly
+    const mMpc=val.match(/\{\{convert\s*\|\s*([\d.]+)\s*\|[^|]*\|\s*Mpc/i);
+    if(mMpc) return {ly:parseFloat(mMpc[1])*3.26156e6};
+    const mMLy=val.match(/\{\{convert\s*\|\s*([\d.]+)\s*\|[^|]*\|\s*Mly/i);
+    if(mMLy) return {ly:parseFloat(mMLy[1])*1e6};
+    const n=firstNum(val);
+    if(n) return {ly:n};
+    return null;
+  }
+
+  (async()=>{
+    try{
+      // ── 1. Wikipedia summary (description + thumbnail) ──────────────────────
+      const wikiRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`);
+      const wiki = wikiRes.ok ? await wikiRes.json() : null;
+      if(wiki?.extract){
+        const el=document.getElementById('fDesc');
+        if(el) el.value = wiki.extract.split('. ').slice(0,3).join('. ')+'.';
+      }
+      if(wiki?.thumbnail?.source){
+        const refImg=document.getElementById('fRefImgUrl'); if(refImg) refImg.value=wiki.thumbnail.source;
+        const refWrap=document.getElementById('refImgPreviewWrap'); if(refWrap) refWrap.style.display='block';
+        const refEl=document.getElementById('refImgPreview'); if(refEl) refEl.src=wiki.thumbnail.source;
+      }
+
+      // ── 2. Wikipedia infobox wikitext ───────────────────────────────────────
+      const pageTitle = wiki?.title || name;
+      const parseUrl = `https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(pageTitle)}&prop=wikitext&format=json&origin=*`;
+      const parseRes = await fetch(parseUrl);
+      if(parseRes.ok){
+        const parseData = await parseRes.json();
+        const wikitext = parseData?.parse?.wikitext?.['*'] || '';
+
+        // Extract field value from wikitext (handles multi-line)
+        function getField(key){
+          const m=wikitext.match(new RegExp('\\|\\s*'+key+'\\s*=\\s*([^\\n]+)','i'));
+          return m ? m[1].trim() : null;
+        }
+
+        // RA
+        const raVal=getField('ra');
+        if(raVal){
+          const parsed=parseRAtemplate(raVal);
+          if(parsed){ const el=document.getElementById('fRA'); if(el) el.value=parsed; }
+          else {
+            // try ra_h/ra_m/ra_s
+            const h=getField('ra_h'), m2=getField('ra_m'), s=getField('ra_s');
+            if(h&&m2){ const el=document.getElementById('fRA'); if(el) el.value=`${h}h${m2.padStart(2,'0')}m${(s||'0')}s`; }
+          }
+        } else {
+          const h=getField('ra_h'), m2=getField('ra_m'), s=getField('ra_s');
+          if(h&&m2){ const el=document.getElementById('fRA'); if(el) el.value=`${h}h${String(m2).padStart(2,'0')}m${(s||'0')}s`; }
+        }
+
+        // Dec
+        const decVal=getField('dec');
+        if(decVal){
+          const parsed=parseDECtemplate(decVal);
+          if(parsed){ const el=document.getElementById('fDec'); if(el) el.value=parsed; }
+          else {
+            const d=getField('dec_d'), m2=getField('dec_m'), s=getField('dec_s');
+            if(d&&m2){ const el=document.getElementById('fDec'); if(el) el.value=`${parseFloat(d)>=0?'+':''}${d}°${m2.padStart(2,'0')}'${s||'0'}"`;  }
+          }
+        } else {
+          const d=getField('dec_d'), m2=getField('dec_m'), s=getField('dec_s');
+          if(d&&m2){ const el=document.getElementById('fDec'); if(el) el.value=`${parseFloat(d)>=0?'+':''}${d}°${String(m2).padStart(2,'0')}'${(s||'0')}"`;  }
+        }
+
+        // Magnitude
+        const magVal=getField('appmag_v')||getField('magnitude')||getField('apparent_magnitude');
+        if(magVal){ const n=firstNum(magVal); if(n!==null){ const el=document.getElementById('fMag'); if(el) el.value=n.toFixed(1); }}
+
+        // Distance — try dist_ly first, then dist_mly, then dist_pc
+        const distLy=getField('dist_ly')||getField('distance_ly');
+        const distMly=getField('dist_mly');
+        const distPc=getField('dist_pc')||getField('distance_pc');
+        let distResult=null;
+        if(distLy) distResult=parseDist(distLy);
+        else if(distMly){ const n=firstNum(distMly); if(n) distResult={ly:n*1e6}; }
+        else if(distPc){ const n=firstNum(distPc); if(n) distResult={ly:n*3.26156}; }
+        if(distResult){
+          const dEl=document.getElementById('fDist'), uEl=document.getElementById('fDistUnit');
+          if(dEl&&uEl){
+            const ly=distResult.ly;
+            if(ly>=1e9){dEl.value=(ly/1e9).toFixed(2);uEl.value='Gly';}
+            else if(ly>=1e6){dEl.value=(ly/1e6).toFixed(2);uEl.value='Mly';}
+            else {dEl.value=Math.round(ly);uEl.value='ly';}
+          }
+        }
+
+        // Type
+        const typeKw=wikitext.toLowerCase();
+        const typeMap=[['galaxy','galaxy'],['nebula','nebula'],['cluster','cluster'],['planet','planet'],['comet','comet'],['star','star']];
+        for(const [kw,t] of typeMap){
+          if(typeKw.includes(kw)){ const el=document.getElementById('fType'); if(el){el.value=t;updateTypeIcon(t);} break; }
+        }
+
+        // Catalog IDs
+        const mWiki=wikitext.match(/Messier[^\w](\d+)|[^A-Za-z0-9]M(\d{1,3})[^A-Za-z0-9]/);
+        const ngcWiki=wikitext.match(/NGC\s*(\d+)/i);
+        const caldwellWiki=wikitext.match(/Caldwell\s*(\d+)/i);
+        if(mWiki){ const num=mWiki[1]||mWiki[2]; if(num){ const sel=document.getElementById('fCatalog'); if(sel&&!sel.value) sel.value='M'+num; }}
+        if(ngcWiki){ const inp=document.getElementById('fCatalogManual'); if(inp&&!inp.value) inp.value='NGC '+ngcWiki[1]; }
+        if(caldwellWiki){ const num=caldwellWiki[1]; if(num){ const sel=document.getElementById('fCatalogC'); if(sel&&!sel.value) sel.value='C'+num; }}
+      }
+
+      // ── 3. Catalog IDs from name field itself ───────────────────────────────
+      const mMatch=name.match(/\bM(\d+)\b/i);
+      const cMatch=name.match(/\bC(\d+)\b/i);
+      const ngcMatch=name.match(/\bNGC\s*(\d+)\b/i);
+      if(mMatch){ const sel=document.getElementById('fCatalog'); if(sel&&!sel.value) sel.value='M'+mMatch[1]; }
+      if(cMatch){ const sel=document.getElementById('fCatalogC'); if(sel&&!sel.value) sel.value='C'+cMatch[1]; }
+      if(ngcMatch){ const inp=document.getElementById('fCatalogManual'); if(inp&&!inp.value) inp.value='NGC '+ngcMatch[1]; }
+
+      toast(lang==='pt'?'✅ Dados carregados!':'✅ Data loaded!');
+    } catch(e){
+      console.warn('Autofill error:',e);
+      toast(lang==='pt'?'Dados parcialmente carregados':'Partial data loaded','warn');
     }
-    if(wiki?.thumbnail?.source){
-      // Wiki image = reference image (not the user's observation photo)
-      const refImg = document.getElementById('fRefImgUrl');
-      if(refImg){ refImg.value = wiki.thumbnail.source; }
-      const refWrap = document.getElementById('refImgPreviewWrap');
-      const refEl   = document.getElementById('refImgPreview');
-      if(refWrap && refEl){ refEl.src = wiki.thumbnail.source; refWrap.style.display='block'; }
-    }
-    const q1 = `SELECT b.ra,b.dec,b.plx_value FROM basic b JOIN ident i ON i.oidref=b.oid WHERE i.id='${name}' LIMIT 1`;
-    const r1 = await fetch(`https://simbad.cds.unistra.fr/simbad/sim-tap/sync?REQUEST=doQuery&LANG=ADQL&FORMAT=json&QUERY=${encodeURIComponent(q1)}`);
-    const d1 = r1.ok ? await r1.json() : null;
-    if(d1?.data?.[0]){
-      const [ra,dec,plx]=d1.data[0];
-      if(ra!=null){const h=Math.floor(ra/15);const m=Math.floor((ra/15-h)*60);const s=((ra/15-h)*60-m)*60;document.getElementById('fRA').value=`${String(h).padStart(2,'0')}h${String(m).padStart(2,'0')}m${s.toFixed(1).padStart(4,'0')}s`;}
-      if(dec!=null){const sign=dec<0?'-':'+';const a=Math.abs(dec);const d2=Math.floor(a);const dm=Math.floor((a-d2)*60);const ds=((a-d2)*60-dm)*60;document.getElementById('fDec').value=`${sign}${String(d2).padStart(2,'0')}°${String(dm).padStart(2,'0')}'${ds.toFixed(0).padStart(2,'0')}"`;}
-      if(plx!=null&&plx>0){const ly=(1000/plx)*3.26156;if(ly<1000000){document.getElementById('fDist').value=ly.toFixed(0);document.getElementById('fDistUnit').value='ly';}else{document.getElementById('fDist').value=(ly/1000000).toFixed(1);document.getElementById('fDistUnit').value='Mly';}}
-    }
-    const q2=`SELECT f.flux FROM flux f JOIN ident i ON i.oidref=f.oidref WHERE i.id='${name}' AND f.filter='V' LIMIT 1`;
-    const r2=await fetch(`https://simbad.cds.unistra.fr/simbad/sim-tap/sync?REQUEST=doQuery&LANG=ADQL&FORMAT=json&QUERY=${encodeURIComponent(q2)}`);
-    const d2=r2.ok?await r2.json():null;
-    if(d2?.data?.[0]?.[0]!=null) document.getElementById('fMag').value=Number(d2.data[0][0]).toFixed(1);
-    toast(lang==='pt'?'✅ Dados carregados!':'✅ Data loaded!');
-  } catch(e){ toast(lang==='pt'?'Não foi possível carregar dados':'Could not load data','error'); }
-  btn.disabled=false; btn.textContent='🔍 Auto-fill';
+    btn.disabled=false; btn.textContent='🔍 Auto-fill';
+  })();
 }
+
 
 function handleImageUpload(e){
   const file = e.target.files?.[0];
