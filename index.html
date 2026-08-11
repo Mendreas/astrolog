@@ -2825,21 +2825,17 @@ function pageDefinicoes(){
     <button class="btn btn-primary btn-sm" onclick="saveProfile()">${t('save')}</button>
   </div>
 
-  <!-- Equipamento Padrão -->
+  <!-- Equipamento -->
   <div class="card" style="margin-bottom:16px">
-    <div class="setting-group-title">${lang==='pt'?'Equipamento Padrão':'Default Equipment'}</div>
-    <div class="form-grid">
-      <div class="form-group">
-        <label class="form-label">${lang==='pt'?'Telescópio':'Telescope'}</label>
-        <input class="form-input" id="settScope" value="${localStorage.getItem('def_scope')||''}" placeholder="ex: Dobson 8&quot;">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Ocular</label>
-        <input class="form-input" id="settEyepiece" value="${localStorage.getItem('def_eyepiece')||''}" placeholder="ex: 25mm">
-      </div>
+    <div class="setting-group-title">Equipamento</div>
+    <div id="telescopeList" style="margin-bottom:8px"></div>
+    <div style="display:flex;gap:8px">
+      <button onclick="addTelescope()" class="btn btn-secondary btn-sm">+ Adicionar Telescópio</button>
+      <button onclick="saveEquip()" class="btn btn-primary btn-sm">Guardar</button>
     </div>
-    <button class="btn btn-primary btn-sm" onclick="saveEquip()">${t('save')}</button>
   </div>
+
+  <!-- >
 
   <!-- Dados -->
   <div class="card" style="margin-bottom:16px">
@@ -2886,9 +2882,44 @@ function saveProfile(){
 }
 
 function saveEquip(){
-  localStorage.setItem('def_scope', document.getElementById('settScope').value);
-  localStorage.setItem('def_eyepiece', document.getElementById('settEyepiece').value);
+  // Read all telescope rows
+  const list = document.getElementById('telescopeList');
+  const scopes = [];
+  if(list){
+    let i=0;
+    while(document.getElementById('scope_name_'+i)){
+      const name = document.getElementById('scope_name_'+i).value.trim();
+      const eye  = document.getElementById('scope_eye_'+i)?.value.trim()||'';
+      if(name) scopes.push({name, eyepiece:eye});
+      i++;
+    }
+  }
+  localStorage.setItem('astro_telescopes', JSON.stringify(scopes));
+  if(scopes.length){
+    localStorage.setItem('def_scope', scopes[0].name);
+    localStorage.setItem('def_eyepiece', scopes[0].eyepiece||'');
+  }
   toast(lang==='pt'?'Equipamento guardado':'Equipment saved');
+}
+function addTelescope(){
+  const list = document.getElementById('telescopeList');
+  if(!list) return;
+  let i=0; while(document.getElementById('scope_name_'+i)) i++;
+  const row = document.createElement('div');
+  row.style.cssText='display:flex;gap:8px;align-items:center;margin-bottom:8px';
+  row.innerHTML='<input class="form-input" style="flex:1" placeholder="Telescópio / Binóculos" id="scope_name_'+i+'">'
+    +'<input class="form-input" style="flex:1" placeholder="Ocular" id="scope_eye_'+i+'">'
+    +'<button onclick="this.parentNode.remove()" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#ef4444;border-radius:7px;padding:6px 10px;cursor:pointer;font-size:12px;flex-shrink:0">✕</button>';
+  list.appendChild(row);
+  document.getElementById('scope_name_'+i)?.focus();
+}
+function removeTelescope(i){
+  navigate('definicoes'); // re-render after removing
+  let scopes=[];
+  try{scopes=JSON.parse(localStorage.getItem('astro_telescopes')||'[]');}catch(e){}
+  scopes.splice(i,1);
+  localStorage.setItem('astro_telescopes', JSON.stringify(scopes));
+  navigate('definicoes');
 }
 
 // ── ADD OBSERVATION ───────────────────────────────────────────────────────────
@@ -3327,7 +3358,31 @@ function saveWishlist(){
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
 function exportData(){
-  const data = {observations, wishlist, exportDate:new Date().toISOString()};
+  // Load all telescopes
+  let telescopes = [];
+  try { telescopes = JSON.parse(localStorage.getItem('astro_telescopes')||'[]'); } catch(e){}
+  if(!telescopes.length){
+    const single = localStorage.getItem('def_scope')||'';
+    if(single) telescopes = [{name:single, eyepiece:localStorage.getItem('def_eyepiece')||''}];
+  }
+  const data = {
+    observations,
+    wishlist,
+    profile: {
+      username: localStorage.getItem('astro_username')||'',
+      role:     localStorage.getItem('astro_role')||'',
+    },
+    equipment: {
+      telescopes,
+      defaultScope:    localStorage.getItem('def_scope')||'',
+      defaultEyepiece: localStorage.getItem('def_eyepiece')||'',
+    },
+    settings: {
+      lang: localStorage.getItem('astro_lang')||'pt',
+    },
+    exportDate: new Date().toISOString(),
+    version: '2.0',
+  };
   const json = JSON.stringify(data, null, 2);
   const filename = 'astrologs-backup-'+new Date().toISOString().split('T')[0]+'.json';
 
@@ -3355,19 +3410,42 @@ function fallbackExport(json, filename){
 }
 
 function importData(e){
-  const file=e.target.files?.[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    try{
-      const data=JSON.parse(ev.target.result);
-      if(Array.isArray(data)){observations=data;save();toast(lang==='pt'?'Importado':'Imported');}
-      else if(data.observations){observations=data.observations;save();if(data.wishlist){wishlist=data.wishlist;saveWL();}toast(lang==='pt'?'Backup restaurado':'Backup restored');}
-      else{toast(lang==='pt'?'Formato inválido':'Invalid format','error');return;}
-      updateBadges();navigate(currentPage);
-    }catch{toast(lang==='pt'?'Erro ao importar':'Import error','error');}
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if(data.observations) {
+        observations = data.observations;
+        localStorage.setItem('astro_obs', JSON.stringify(observations));
+      }
+      if(data.wishlist) {
+        wishlist = data.wishlist;
+        localStorage.setItem('astro_wishlist', JSON.stringify(wishlist));
+      }
+      if(data.profile) {
+        if(data.profile.username) localStorage.setItem('astro_username', data.profile.username);
+        if(data.profile.role)     localStorage.setItem('astro_role', data.profile.role);
+      }
+      if(data.equipment) {
+        if(data.equipment.telescopes) localStorage.setItem('astro_telescopes', JSON.stringify(data.equipment.telescopes));
+        if(data.equipment.defaultScope)    localStorage.setItem('def_scope', data.equipment.defaultScope);
+        if(data.equipment.defaultEyepiece) localStorage.setItem('def_eyepiece', data.equipment.defaultEyepiece);
+      }
+      if(data.settings?.lang) {
+        lang = data.settings.lang;
+        localStorage.setItem('astro_lang', lang);
+      }
+      toast(lang==='pt'?'✅ Dados importados com sucesso!':'✅ Data imported successfully!');
+      navigate(currentPage);
+    } catch(err) {
+      toast(lang==='pt'?'Erro ao importar — ficheiro inválido':'Import error — invalid file','err');
+    }
   };
   reader.readAsText(file);
 }
+
 
 function clearAll(){
   if(!confirm(t('confirm_clear'))) return;
@@ -3402,6 +3480,7 @@ function initPageJS(page){
     },100);
   }
   if(page==='catalogos'){setTimeout(()=>{const btn=document.getElementById('catFilterBtns')?.querySelector('.filter-btn');if(btn)showCatalog('messier',btn);},80);}
+  if(page==='definicoes'){setTimeout(renderTelescopeList,50);}
   if(page==='diario'){
     setTimeout(renderSavedNotes, 50);
   }
@@ -3761,6 +3840,26 @@ const SPECIAL_BADGES_DATA = [
   ['traveler', '🌍 Viajante Celeste',      'Observar de 3 locais diferentes'],
   ['photo',    '📸 Primeiro Registo',      'Primeira observação com fotografia'],
 ];
+
+function renderTelescopeList(){
+  const list = document.getElementById('telescopeList');
+  if(!list) return;
+  let scopes=[];
+  try{scopes=JSON.parse(localStorage.getItem('astro_telescopes')||'[]');}catch(e){}
+  if(!scopes.length){
+    const s=localStorage.getItem('def_scope')||'';
+    const ey=localStorage.getItem('def_eyepiece')||'';
+    if(s) scopes=[{name:s,eyepiece:ey}];
+    else scopes=[{name:'',eyepiece:''}];
+  }
+  list.innerHTML = scopes.map((sc,i)=>
+    '<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">'
+    +'<input class="form-input" style="flex:1.5" placeholder="Telescópio / Binóculos" value="'+sc.name.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'" id="scope_name_'+i+'">'
+    +'<input class="form-input" style="flex:1" placeholder="Ocular" value="'+(sc.eyepiece||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'" id="scope_eye_'+i+'">'
+    +(scopes.length>1?'<button onclick="removeTelescope('+i+')" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#ef4444;border-radius:7px;padding:6px 10px;cursor:pointer;font-size:13px;flex-shrink:0">✕</button>':'')
+    +'</div>'
+  ).join('');
+}
 document.addEventListener('DOMContentLoaded', ()=>{
   // Global error handler
   window.onerror = (msg, src, line) => {
