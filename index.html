@@ -1218,6 +1218,8 @@ function navigate(page){
     galeria:['title_gal','sub_gal'],
     diario:['title_diary','sub_diary'],
     definicoes:['title_def','sub_def'],
+    catalogos:['title_cat','sub_cat'],
+    recompensas:['title_rewards','sub_rewards'],
   };
   const [tk,sk] = titles[page]||['title_dashboard','sub_dashboard'];
   document.getElementById('topbarTitle').textContent = t(tk);
@@ -2871,9 +2873,15 @@ function pageDefinicoes(){
 
 function saveProfile(){
   const name = document.getElementById('settName').value.trim();
-  const role = document.getElementById('settRole').value.trim();
-  if(name){ localStorage.setItem('astro_username',name); document.getElementById('userNameSidebar').textContent=name; }
-  if(role){ localStorage.setItem('astro_role',role); document.getElementById('userRoleSidebar').textContent=role; }
+  if(name){
+    localStorage.setItem('astro_username', name);
+    const el = document.getElementById('userNameTopbar');
+    if(el) el.textContent = name;
+  }
+  const autoRole = getAstroTitle(observations.length);
+  localStorage.setItem('astro_role', autoRole);
+  const roleEl = document.getElementById('userRoleTopbar');
+  if(roleEl) roleEl.textContent = autoRole;
   toast(lang==='pt'?'Perfil guardado':'Profile saved');
 }
 
@@ -3767,15 +3775,19 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // Sidebar init
   (()=>{
     const sb = document.getElementById('sidebar');
+    const btn = document.getElementById('sidebarToggle');
     if(!sb) return;
     if(window.innerWidth <= 1366){
       // iPad/phone: start collapsed (icons only)
       sb.classList.remove('expanded');
       if(btn) btn.textContent = '☰';
     } else {
-      // Desktop: restore collapsed state from localStorage
+      // Desktop: always expanded by default, only collapse if explicitly set
+      sb.classList.remove('collapsed');
       if(localStorage.getItem('sidebarCollapsed')==='1'){
         sb.classList.add('collapsed');
+        if(btn) btn.textContent = '☰';
+      } else {
         if(btn) btn.textContent = '☰';
       }
     }
@@ -3792,6 +3804,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
   if(_tbr) _tbr.textContent = _urole;
   if(_tba) _tba.textContent = _uinit;
   updateBadges();
+  // Reset stale collapsed state on desktop
+  if(window.innerWidth > 1366){
+    localStorage.removeItem('sidebarCollapsed');
+    const sb2=document.getElementById('sidebar');
+    if(sb2) sb2.classList.remove('collapsed');
+  }
   navigate('dashboard');
 
   // Close modals on overlay click
