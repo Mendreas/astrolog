@@ -1141,24 +1141,26 @@ function setLang(l){
 function save(){
   try {
     localStorage.setItem('observations', JSON.stringify(observations));
+    return true;
   } catch(e){
-    if(e.name==='QuotaExceededError'||e.name==='NS_ERROR_DOM_QUOTA_REACHED'){
-      // Try saving without large images
-      const slim = observations.map(o=>({
-        ...o,
-        image: o.image&&o.image.startsWith('data:')&&o.image.length>100000 ? '[imagem grande - exportar JSON]' : o.image,
-        images: (o.images||[]).map(img=>img&&img.startsWith('data:')&&img.length>200000?'[imagem grande]':img),
-        refImage: o.refImage&&o.refImage.length>100000?'':o.refImage,
-      }));
-      try {
-        localStorage.setItem('observations', JSON.stringify(slim));
-        toast(lang==='pt'
-          ?'⚠️ Guardado sem imagens grandes — usa Exportar JSON para backup completo'
-          :'⚠️ Saved without large images — use Export JSON for full backup','warn',6000);
-      } catch(e2){
-        toast(lang==='pt'?'❌ Sem espaço! Exporta e apaga observações antigas':'❌ Storage full! Export and delete old observations','err',8000);
-      }
-    } else { throw e; }
+    // Storage full - strip large images and try again
+    const slim = observations.map(o=>({
+      ...o,
+      image: o.image&&o.image.startsWith('data:')&&o.image.length>150000 ? '' : o.image,
+      images: (o.images||[]).filter(img=>!img||!img.startsWith('data:')||img.length<150000),
+      refImage: o.refImage&&o.refImage.startsWith('data:')&&o.refImage.length>100000?'':o.refImage,
+    }));
+    try {
+      localStorage.setItem('observations', JSON.stringify(slim));
+      observations = slim;
+      toast(lang==='pt'
+        ?'⚠️ Guardado! Imagens grandes removidas (armazenamento cheio). Usa Exportar JSON para backup.'
+        :'⚠️ Saved! Large images removed (storage full). Use Export JSON for backup.','warn',7000);
+      return true;
+    } catch(e2){
+      toast(lang==='pt'?'❌ Sem espaço! Vai a Definições → Libertar Espaço':'❌ Storage full! Go to Settings → Free Storage','err',8000);
+      return false;
+    }
   }
 }
 function saveWL(){ localStorage.setItem('wishlist', JSON.stringify(wishlist)); }
@@ -1228,7 +1230,7 @@ function updateBadges(){
 function navigate(page){
   currentPage = page;
   document.querySelectorAll('.nav-item').forEach(el => {
-    el.classList.toggle('active', el.getAttribute('onclick')===`navigate('${page}')`);
+    el.classList.toggle('active', el.getAttribute('onclick')==="navigate('"+page+"')");
   });
   const titles = {
     dashboard:['title_dashboard','sub_dashboard'],
@@ -2552,14 +2554,21 @@ function pageGaleria(){
 
   function galCards(obs){
     if(!obs.length) return '<div class="empty"><div class="empty-icon"><img src="'+OBJ_ICONS['other']+'" style="width:56px;height:56px;object-fit:contain;opacity:.4"></div><div class="empty-text">'+(lang==='pt'?'Sem imagens para este filtro':'No images for this filter')+'</div></div>';
-    return obs.map(o=>
-      '<div class="gal-card" onclick="openGalImg('+o.id+')">'
-      +'<div class="gal-img-wrap">'
-      +'<img src="'+(o.images&&o.images.length?o.images[0]:o.image)+'" alt="'+o.name+'" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block">'      +((o.images&&o.images.length>1)?'<div style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.65);color:#fff;font-size:10px;padding:2px 6px;border-radius:10px">📷 '+o.images.length+'</div>':'')      +'<div class="gal-overlay">'      +'<div style="font-size:12.5px;font-weight:600;color:#fff;font-family:Cinzel,serif">'+o.name+'</div>'
-      +'<div style="font-size:11px;color:rgba(255,255,255,.55);margin-top:2px">'+(o.date||'')+(o.location?' · '+o.location:'')+'</div>'
-      +'</div></div></div>'
-    ).join('');
-  }
+    return obs.map(o=>{
+      const imgs = o.images&&o.images.length ? o.images : o.image ? [o.image] : [];
+      const thumb = imgs[0]||'';
+      const count = imgs.length;
+      return '<div class="gal-card" onclick="openGalImg('+o.id+')">'
+        +'<div class="gal-img-wrap" style="position:relative">'
+        +'<img src="'+thumb+'" alt="'+o.name+'" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display=\'none\'">'
+        +(count>1?'<div style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.65);color:#fff;font-size:10px;padding:2px 6px;border-radius:10px">📷 '+count+'</div>':'')
+        +'<div class="gal-overlay">'
+        +'<div style="font-size:12.5px;font-weight:600;color:#fff;font-family:Cinzel,serif">'+o.name+'</div>'
+        +'<div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:2px">'+(o.date||'').split('T')[0]+'</div>'
+        +'</div>'
+        +'</div>'
+        +'</div>';
+    }).join('');
 
   if(withImg.length===0) return `
   <div class="section-header"><div class="section-title">${t('title_gal')}</div></div>
@@ -2587,7 +2596,8 @@ function pageGaleria(){
       <div id="galFsName" style="font-family:Cinzel,serif;font-size:15px;color:#e8b84b;letter-spacing:.1em"></div>
       <div id="galFsDate" style="font-size:11px;color:rgba(255,255,255,.45);margin-top:3px"></div>
     </div>
-    <img id="galFsImg" src="" onclick="event.stopPropagation()" style="max-width:88vw;max-height:85vh;object-fit:contain;border-radius:8px;box-shadow:0 8px 60px rgba(0,0,0,.9)">
+    <img id="galFsImg" src="" onclick="event.stopPropagation()" style="max-width:88vw;max-height:78vh;object-fit:contain;border-radius:8px;box-shadow:0 8px 60px rgba(0,0,0,.9)">
+    <div id="galFsStrip" onclick="event.stopPropagation()" style="display:none;gap:6px;flex-wrap:wrap;justify-content:center;padding:8px 16px;max-width:90vw"></div>
     <div style="position:absolute;bottom:18px;font-size:11px;color:rgba(255,255,255,.3);letter-spacing:.1em">${lang==='pt'?'CLIQUE PARA FECHAR':'CLICK TO CLOSE'}</div>
   </div>`;
 }
@@ -2616,30 +2626,41 @@ function galFilter(type, btn){
 
 function openGalImg(id){
   const o = observations.find(x=>x.id===id);
-  if(!o||!o.image) return;
-  // The fullscreen div is inside the page content — find it
+  if(!o) return;
+  const allImgs = o.images&&o.images.length ? o.images : o.image ? [o.image] : [];
+  if(!allImgs.length) return;
+  window._galImgs = allImgs;
+  window._galIdx  = 0;
   const fs = document.getElementById('galFullscreen');
   if(!fs) return;
-  const allImgs = o.images&&o.images.length ? o.images : o.image ? [o.image] : [];
-  document.getElementById('galFsImg').src = allImgs[0]||o.image||'';
+  document.getElementById('galFsImg').src = allImgs[0];
   document.getElementById('galFsName').textContent = o.name;
-  // Add thumbnail strip if multiple images
+  document.getElementById('galFsDate').textContent = (o.date||'').split('T')[0]+(o.location?' · '+o.location:'');
+  // Strip
   const strip = document.getElementById('galFsStrip');
   if(strip){
-    if(allImgs.length > 1){
+    if(allImgs.length>1){
       strip.style.display='flex';
       strip.innerHTML = allImgs.map((src,i)=>
-        '<img src="'+src+'" onclick="document.getElementById(\'galFsImg\').src=this.src;[...document.getElementById(\'galFsStrip\').querySelectorAll(\'img\')].forEach(el=>el.style.outline=\'none\');this.style.outline=\'2px solid #e8b84b\'" '
-        +'style="width:52px;height:52px;object-fit:cover;border-radius:6px;cursor:pointer;'+(i===0?'outline:2px solid #e8b84b':'')+';">'
+        '<img src="'+src+'" data-idx="'+i+'" onclick="galStripClick('+i+')" style="width:52px;height:52px;object-fit:cover;border-radius:6px;cursor:pointer;outline:'+(i===0?'2px solid #e8b84b':'none')+'">'
       ).join('');
     } else {
       strip.style.display='none';
     }
   }
-  document.getElementById('galFsDate').textContent = (o.date||'')+(o.location?' · '+o.location:'');
-  fs.style.display = 'flex';
-  document.body.style.overflow = 'hidden';
+  fs.style.display='flex';
+  document.body.style.overflow='hidden';
 }
+function galStripClick(i){
+  window._galIdx=i;
+  const imgs=window._galImgs||[];
+  const fsImg=document.getElementById('galFsImg');
+  if(fsImg) fsImg.src=imgs[i]||'';
+  document.querySelectorAll('#galFsStrip img').forEach((el,j)=>{
+    el.style.outline = j===i?'2px solid #e8b84b':'none';
+  });
+}
+
 function closeGal(){
   const fs = document.getElementById('galFullscreen');
   if(fs) fs.style.display = 'none';
@@ -3236,8 +3257,8 @@ function handleImageUpload(e){
       canvas.width=width;canvas.height=height;
       canvas.getContext('2d').drawImage(img,0,0,width,height);
       const src=canvas.toDataURL('image/jpeg',.78);
-      document.getElementById('imgPreview').src=src;
-      document.getElementById('imgPreviewWrap').style.display='block';
+      userImages.push({type:'data', src});
+      renderUserImgThumbs();
     };
     img.src=ev.target.result;
   };
@@ -3327,70 +3348,64 @@ function nextImg(){ window._viewerIdx=Math.min((window._viewerImgs||[]).length-1
 function closeImgViewer(){ const o=document.getElementById('imgViewerOverlay'); if(o) o.style.display='none'; }
 
 function clearImage(){
-  document.getElementById('imgPreview').src='';
-  document.getElementById('imgPreviewWrap').style.display='none';
-  document.getElementById('fImgFile').value='';
+  const f=document.getElementById('fImgFile'); if(f) f.value='';
+  userImages=[];
+  renderUserImgThumbs();
 }
 
 // ── DETAIL MODAL ─────────────────────────────────────────────────────────────
 function showDetail(id){
   const obs = observations.find(o=>o.id===id);
   if(!obs) return;
-  document.getElementById('detailTitle').textContent=obs.name;
-
-  // Collect all images
-  const userImgs = obs.images&&obs.images.length ? obs.images : obs.image ? [obs.image] : [];
-  const refImg   = obs.refImage||'';
-  const allImgs  = [...userImgs, ...(refImg?[refImg]:[])];
-  const refIdx   = userImgs.length; // index where ref image starts
-
-  // Store images globally for viewer access
+  document.getElementById('detailTitle').textContent = obs.name;
+  const userImgs = (obs.images&&obs.images.length) ? obs.images : obs.image ? [obs.image] : [];
+  const refImg = obs.refImage||'';
+  const allImgs = userImgs.concat(refImg ? [refImg] : []);
   window._detailImgs = allImgs;
-
-  // Image section
+  const refIdx = userImgs.length;
   let imgHTML = '';
   if(allImgs.length > 0){
     imgHTML = '<div style="margin-bottom:12px">'
-      +'<div style="width:100%;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden;cursor:pointer" onclick="openImgViewer(window._detailImgs,0)">'
-      +'<img src="'+allImgs[0]+'" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.style.display=\'none\'">'
-      +(allImgs.length>1?'<div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;padding:3px 8px;border-radius:10px;pointer-events:none">📷 '+allImgs.length+'</div>':'')
-      +'</div>'
-      +(allImgs.length>1
-        ?'<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">'
-          +allImgs.map((src,i)=>'<div style="position:relative;cursor:pointer;flex-shrink:0" onclick="openImgViewer(window._detailImgs,'+i+')">'
-            +'<img src="'+src+'" style="width:56px;height:56px;object-fit:cover;border-radius:6px;border:2px solid '+(i>=refIdx?'rgba(200,155,50,.5)':'rgba(255,255,255,.15)')+';" onerror="this.style.display=\'none\'">'
-            +(i>=refIdx?'<span style="position:absolute;bottom:2px;left:2px;font-size:7px;background:rgba(200,155,50,.8);color:#000;padding:1px 3px;border-radius:2px">REF</span>':'')
-            +'</div>').join('')
-          +'</div>'
-        :'')
-      +'</div>';
+      +'<div style="width:100%;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden;cursor:pointer;position:relative" onclick="openImgViewer(window._detailImgs,0)">'
+      +'<img src="'+allImgs[0]+'" style="width:100%;height:100%;object-fit:cover">';
+    if(allImgs.length>1) imgHTML += '<div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;padding:3px 8px;border-radius:10px">'+String.fromCodePoint(128247)+' '+allImgs.length+'</div>';
+    imgHTML += '</div>';
+    if(allImgs.length > 1){
+      imgHTML += '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">';
+      for(let i=0;i<allImgs.length;i++){
+        const bdr = i>=refIdx ? 'rgba(200,155,50,.5)' : 'rgba(255,255,255,.15)';
+        imgHTML += '<div style="position:relative;cursor:pointer;flex-shrink:0" onclick="openImgViewer(window._detailImgs,'+i+')">'
+          +'<img src="'+allImgs[i]+'" style="width:56px;height:56px;object-fit:cover;border-radius:6px;border:2px solid '+bdr+';">';
+        if(i>=refIdx) imgHTML += '<span style="position:absolute;bottom:2px;left:2px;font-size:7px;background:rgba(200,155,50,.8);color:#000;padding:1px 3px;border-radius:2px">REF</span>';
+        imgHTML += '</div>';
+      }
+      imgHTML += '</div>';
+    }
+    imgHTML += '</div>';
   } else {
     imgHTML = '<div style="margin-bottom:12px;text-align:center;padding:20px">'+typeIcon(obs.type,80)+'</div>';
   }
-
-  // Info rows
-  const rows = [
-    ['Tipo',`<span class="badge ${typeBadgeClass(obs.type)}">${typeLabel(obs.type)}</span>`],
-    obs.ngc&&['Catálogo',obs.ngc],
-    obs.date&&['Data',obs.date.split('T')[0]],
-    obs.location&&['Local',obs.location],
-    obs.magnitude&&['Magnitude',obs.magnitude],
-    obs.distance&&['Distância',`${obs.distance} ${obs.distanceUnit||'ly'}`],
-    obs.ra&&['AR',obs.ra],
-    obs.dec&&['DEC',obs.dec],
-    obs.equipment&&['Telescópio',obs.equipment],
-    obs.eyepiece&&['Ocular',obs.eyepiece],
-    obs.seeing&&['Seeing',`<span class="stars">${starsDisp(obs.seeing)}</span> ${seeingLbl(obs.seeing)}`],
-    obs.transparency&&['Transparência',`<span class="stars">${starsDisp(obs.transparency)}</span>`],
-    obs.description&&['Notas','<div style="white-space:pre-wrap;font-size:12px;line-height:1.6">'+obs.description+'</div>'],
-  ].filter(Boolean);
-
-  document.getElementById('detailBody').innerHTML = imgHTML
-    + rows.map(([k,v])=>`<div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val">${v}</span></div>`).join('')
-    + `<div class="btn-row" style="margin-top:16px">
-        <button class="btn btn-secondary" onclick="closeModal('detailModal');deleteObs(${id})">🗑️</button>
-        <button class="btn btn-primary" onclick="closeModal('detailModal');openAddModal(${id})">✏️ ${lang==='pt'?'Editar':'Edit'}</button>
-       </div>`;
+  const rows = [];
+  rows.push(['Tipo','<span class="badge '+typeBadgeClass(obs.type)+'">'+typeLabel(obs.type)+'</span>']);
+  if(obs.ngc)          rows.push(['Cat\u00e1logo', obs.ngc]);
+  if(obs.date)         rows.push(['Data', obs.date.split('T')[0]]);
+  if(obs.location)     rows.push(['Local', obs.location]);
+  if(obs.magnitude)    rows.push(['Magnitude', obs.magnitude]);
+  if(obs.distance)     rows.push(['Dist\u00e2ncia', obs.distance+' '+(obs.distanceUnit||'ly')]);
+  if(obs.ra)           rows.push(['AR', obs.ra]);
+  if(obs.dec)          rows.push(['DEC', obs.dec]);
+  if(obs.equipment)    rows.push(['Telesc\u00f3pio', obs.equipment]);
+  if(obs.eyepiece)     rows.push(['Ocular', obs.eyepiece]);
+  if(obs.seeing)       rows.push(['Seeing', '<span class="stars">'+starsDisp(obs.seeing)+'</span> '+seeingLbl(obs.seeing)]);
+  if(obs.transparency) rows.push(['Transpar\u00eancia', '<span class="stars">'+starsDisp(obs.transparency)+'</span>']);
+  if(obs.description)  rows.push(['Notas', '<div style="white-space:pre-wrap;font-size:12px;line-height:1.6">'+obs.description.replace(/</g,'&lt;')+'</div>']);
+  const rowsHTML = rows.map(function(r){ return '<div class="detail-row"><span class="detail-key">'+r[0]+'</span><span class="detail-val">'+r[1]+'</span></div>'; }).join('');
+  const editLbl = lang==='pt' ? 'Editar' : 'Edit';
+  const btns = '<div class="btn-row" style="margin-top:16px">'
+    +'<button class="btn btn-secondary" onclick="closeModal(\'detailModal\');deleteObs('+id+')">&#x1F5D1;</button>'
+    +'<button class="btn btn-primary" onclick="closeModal(\'detailModal\');openAddModal('+id+')">&#9999; '+editLbl+'</button>'
+    +'</div>';
+  document.getElementById('detailBody').innerHTML = imgHTML + rowsHTML + btns;
   openModal('detailModal');
 }
 
