@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#07101f">
@@ -2998,8 +2999,8 @@ function saveObservation(){
   const name = document.getElementById('fName').value.trim();
   if(!name){ toast(lang==='pt'?'O nome é obrigatório':'Name is required','error'); return; }
   const imgUrl = document.getElementById('fImgUrl').value.trim();
-  const imgPreviewSrc = document.getElementById('imgPreview').src;
-  const imgFinal = imgPreviewSrc && document.getElementById('imgPreviewWrap').style.display!=='none' ? imgPreviewSrc : imgUrl;
+  // Images now managed via userImages array (multi-image system)
+  const imgFinal = userImages.length > 0 ? userImages[0].src : (imgUrl||'');
 
   const obs = {
     name, type:document.getElementById('fType').value,
