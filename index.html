@@ -2865,6 +2865,7 @@ function pageDefinicoes(){
     <div class="setting-group-title">${t('settings_data')}</div>
     <div style="display:flex;flex-wrap:wrap;gap:10px">
       <button class="btn btn-secondary" onclick="exportData()">📥 ${t('export_json')}</button>
+      <button class="btn btn-secondary" onclick="clearImageStorage()" title="Liberta espaço apagando imagens grandes do armazenamento local">🗜️ ${lang==='pt'?'Libertar Espaço':'Free Storage'}</button>
       <label class="btn btn-secondary" style="cursor:pointer">
         📤 ${t('import_json')}
         <input type="file" accept="application/json" onchange="importData(event)" style="display:none">
@@ -3052,9 +3053,12 @@ function saveObservation(){
     observations.push({id:Date.now(), ...obs, dateAdded:new Date().toISOString()});
     toast(lang==='pt'?'Observação adicionada':'Observation added');
   }
-  // Compress images in background after save
-  save(); updateBadges();
-  // Async compress existing images for this observation
+  // Close modal FIRST — don't let save errors block UI
+  closeModal('obsModal');
+  navigate(currentPage);
+  // Then save (with error handling) and compress async
+  try { save(); } catch(e){ console.warn('Save error (handled):', e); }
+  updateBadges();
   const _savedId = obs.id;
   compressAllImages(obs.images||[]).then(compressed=>{
     const idx2 = observations.findIndex(o=>o.id===_savedId);
@@ -3063,8 +3067,8 @@ function saveObservation(){
       observations[idx2].image  = compressed[0]||observations[idx2].image;
       try{ save(); }catch(e){}
     }
+    navigate(currentPage);
   });
-  closeModal('obsModal');
   navigate(currentPage);
 }
 
@@ -3334,37 +3338,37 @@ function showDetail(id){
   if(!obs) return;
   document.getElementById('detailTitle').textContent=obs.name;
 
-  // ── Collect all images ────────────────────────────────────────────────────
+  // Collect all images
   const userImgs = obs.images&&obs.images.length ? obs.images : obs.image ? [obs.image] : [];
   const refImg   = obs.refImage||'';
+  const allImgs  = [...userImgs, ...(refImg?[refImg]:[])];
+  const refIdx   = userImgs.length; // index where ref image starts
 
-  // ── Image section: thumbnails row ─────────────────────────────────────────
+  // Store images globally for viewer access
+  window._detailImgs = allImgs;
+
+  // Image section
   let imgHTML = '';
-  if(userImgs.length > 0 || refImg){
-    const allImgs = [...userImgs.map(src=>({src,label:''})),
-                     ...(refImg?[{src:refImg,label:'REF'}]:[])];
-    // Main image (first user photo or ref)
-    const mainSrc = allImgs[0].src;
+  if(allImgs.length > 0){
     imgHTML = '<div style="margin-bottom:12px">'
-      // Main large image
-      +'<div style="width:100%;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden;cursor:pointer;position:relative" onclick="openImgViewer('+JSON.stringify(allImgs.map(i=>i.src))+',0)">'
-      +'<img src="'+mainSrc+'" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.innerHTML=\''+typeIcon(obs.type,80)+'\'">'
-      +(allImgs.length>1?'<div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;padding:3px 8px;border-radius:10px">📷 '+allImgs.length+'</div>':'')
+      +'<div style="width:100%;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden;cursor:pointer" onclick="openImgViewer(window._detailImgs,0)">'
+      +'<img src="'+allImgs[0]+'" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.style.display=\'none\'">'
+      +(allImgs.length>1?'<div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;padding:3px 8px;border-radius:10px;pointer-events:none">📷 '+allImgs.length+'</div>':'')
       +'</div>'
-      // Thumbnails strip
-      +(allImgs.length>1?'<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">'
-        +allImgs.map((img,i)=>'<div style="position:relative;cursor:pointer" onclick="openImgViewer('+JSON.stringify(allImgs.map(x=>x.src))+','+i+')">'
-          +'<img src="'+img.src+'" style="width:56px;height:56px;object-fit:cover;border-radius:6px;border:2px solid '+(img.label?'rgba(200,155,50,.5)':'rgba(255,255,255,.15)')+';" onerror="this.style.display=\'none\'">'
-          +(img.label?'<span style="position:absolute;bottom:2px;left:2px;font-size:7px;background:rgba(200,155,50,.8);color:#000;padding:1px 3px;border-radius:2px">'+img.label+'</span>':'')
-          +'</div>').join('')
-        +'</div>'
-      :'')
+      +(allImgs.length>1
+        ?'<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">'
+          +allImgs.map((src,i)=>'<div style="position:relative;cursor:pointer;flex-shrink:0" onclick="openImgViewer(window._detailImgs,'+i+')">'
+            +'<img src="'+src+'" style="width:56px;height:56px;object-fit:cover;border-radius:6px;border:2px solid '+(i>=refIdx?'rgba(200,155,50,.5)':'rgba(255,255,255,.15)')+';" onerror="this.style.display=\'none\'">'
+            +(i>=refIdx?'<span style="position:absolute;bottom:2px;left:2px;font-size:7px;background:rgba(200,155,50,.8);color:#000;padding:1px 3px;border-radius:2px">REF</span>':'')
+            +'</div>').join('')
+          +'</div>'
+        :'')
       +'</div>';
   } else {
     imgHTML = '<div style="margin-bottom:12px;text-align:center;padding:20px">'+typeIcon(obs.type,80)+'</div>';
   }
 
-  // ── Info rows ─────────────────────────────────────────────────────────────
+  // Info rows
   const rows = [
     ['Tipo',`<span class="badge ${typeBadgeClass(obs.type)}">${typeLabel(obs.type)}</span>`],
     obs.ngc&&['Catálogo',obs.ngc],
@@ -3935,6 +3939,25 @@ function renderTelescopeList(){
     +(scopes.length>1?'<button onclick="removeTelescope('+i+')" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#ef4444;border-radius:7px;padding:6px 10px;cursor:pointer;font-size:13px;flex-shrink:0">✕</button>':'')
     +'</div>'
   ).join('');
+}
+
+function clearImageStorage(){
+  if(!confirm(lang==='pt'?'Isto vai remover imagens grandes do armazenamento local (mantém as observações). Exporta o JSON antes para não perder as fotos. Continuar?':'This will remove large images from local storage (keeps observations). Export JSON first to keep photos. Continue?')) return;
+  let freed=0;
+  observations = observations.map(o=>{
+    const newImgs=(o.images||[]).filter(img=>!img||!img.startsWith('data:')||img.length<50000);
+    if(newImgs.length !== (o.images||[]).length) freed++;
+    const newRef=o.refImage&&o.refImage.startsWith('data:')&&o.refImage.length>50000?'':o.refImage;
+    const newImg=o.image&&o.image.startsWith('data:')&&o.image.length>50000?(newImgs[0]||''):o.image;
+    return {...o, image:newImg, images:newImgs, refImage:newRef};
+  });
+  try{
+    localStorage.setItem('observations', JSON.stringify(observations));
+    toast(lang==='pt'?'✅ Espaço libertado! '+freed+' observações com imagens removidas':'✅ Space freed! '+freed+' observations with images removed');
+    navigate(currentPage);
+  }catch(e){
+    toast('Erro ao limpar','err');
+  }
 }
 document.addEventListener('DOMContentLoaded', ()=>{
   // Global error handler
