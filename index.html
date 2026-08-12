@@ -3300,9 +3300,42 @@ function showDetail(id){
   const obs = observations.find(o=>o.id===id);
   if(!obs) return;
   document.getElementById('detailTitle').textContent=obs.name;
+
+  // ── Collect all images ────────────────────────────────────────────────────
+  const userImgs = obs.images&&obs.images.length ? obs.images : obs.image ? [obs.image] : [];
+  const refImg   = obs.refImage||'';
+
+  // ── Image section: thumbnails row ─────────────────────────────────────────
+  let imgHTML = '';
+  if(userImgs.length > 0 || refImg){
+    const allImgs = [...userImgs.map(src=>({src,label:''})),
+                     ...(refImg?[{src:refImg,label:'REF'}]:[])];
+    // Main image (first user photo or ref)
+    const mainSrc = allImgs[0].src;
+    imgHTML = '<div style="margin-bottom:12px">'
+      // Main large image
+      +'<div style="width:100%;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden;cursor:pointer;position:relative" onclick="openImgViewer('+JSON.stringify(allImgs.map(i=>i.src))+',0)">'
+      +'<img src="'+mainSrc+'" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.innerHTML=\''+typeIcon(obs.type,80)+'\'">'
+      +(allImgs.length>1?'<div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;padding:3px 8px;border-radius:10px">📷 '+allImgs.length+'</div>':'')
+      +'</div>'
+      // Thumbnails strip
+      +(allImgs.length>1?'<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">'
+        +allImgs.map((img,i)=>'<div style="position:relative;cursor:pointer" onclick="openImgViewer('+JSON.stringify(allImgs.map(x=>x.src))+','+i+')">'
+          +'<img src="'+img.src+'" style="width:56px;height:56px;object-fit:cover;border-radius:6px;border:2px solid '+(img.label?'rgba(200,155,50,.5)':'rgba(255,255,255,.15)')+';" onerror="this.style.display=\'none\'">'
+          +(img.label?'<span style="position:absolute;bottom:2px;left:2px;font-size:7px;background:rgba(200,155,50,.8);color:#000;padding:1px 3px;border-radius:2px">'+img.label+'</span>':'')
+          +'</div>').join('')
+        +'</div>'
+      :'')
+      +'</div>';
+  } else {
+    imgHTML = '<div style="margin-bottom:12px;text-align:center;padding:20px">'+typeIcon(obs.type,80)+'</div>';
+  }
+
+  // ── Info rows ─────────────────────────────────────────────────────────────
   const rows = [
     ['Tipo',`<span class="badge ${typeBadgeClass(obs.type)}">${typeLabel(obs.type)}</span>`],
-    ['Data',obs.date],
+    obs.ngc&&['Catálogo',obs.ngc],
+    obs.date&&['Data',obs.date.split('T')[0]],
     obs.location&&['Local',obs.location],
     obs.magnitude&&['Magnitude',obs.magnitude],
     obs.distance&&['Distância',`${obs.distance} ${obs.distanceUnit||'ly'}`],
@@ -3312,22 +3345,18 @@ function showDetail(id){
     obs.eyepiece&&['Ocular',obs.eyepiece],
     obs.seeing&&['Seeing',`<span class="stars">${starsDisp(obs.seeing)}</span> ${seeingLbl(obs.seeing)}`],
     obs.transparency&&['Transparência',`<span class="stars">${starsDisp(obs.transparency)}</span>`],
-    obs.description&&['Notas',obs.description],
+    obs.description&&['Notas','<div style="white-space:pre-wrap;font-size:12px;line-height:1.6">'+obs.description+'</div>'],
   ].filter(Boolean);
 
-  document.getElementById('detailBody').innerHTML = `
-    <div class="detail-img">
-      ${obs.image
-        ? '<img src="'+obs.image+'" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display=\'none\'">'
-        : typeIcon(obs.type,80)}
-    </div>
-    ${rows.map(([k,v])=>`<div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val">${v}</span></div>`).join('')}
-    <div class="btn-row" style="margin-top:16px">
-      <button class="btn btn-secondary" onclick="closeModal('detailModal');deleteObs(${id})">🗑️</button>
-      <button class="btn btn-primary" onclick="closeModal('detailModal');openAddModal(${id})">✏️ ${lang==='pt'?'Editar':'Edit'}</button>
-    </div>`;
+  document.getElementById('detailBody').innerHTML = imgHTML
+    + rows.map(([k,v])=>`<div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val">${v}</span></div>`).join('')
+    + `<div class="btn-row" style="margin-top:16px">
+        <button class="btn btn-secondary" onclick="closeModal('detailModal');deleteObs(${id})">🗑️</button>
+        <button class="btn btn-primary" onclick="closeModal('detailModal');openAddModal(${id})">✏️ ${lang==='pt'?'Editar':'Edit'}</button>
+       </div>`;
   openModal('detailModal');
 }
+
 
 function deleteObs(id){
   if(!confirm(t('confirm_delete'))) return;
@@ -3914,12 +3943,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   // Close modals on overlay click
   document.querySelectorAll('.modal-overlay').forEach(m=>{
-    m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); });
+    m.addEventListener('click',e=>{ if(e.target===m && m.id!=='obsModal') m.classList.remove('open'); });
   });
   // ESC closes modals
   document.addEventListener('keydown',e=>{
     if(e.key==='Escape'){
-      document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));
+      document.querySelectorAll('.modal-overlay.open').forEach(m=>{ if(m.id!=='obsModal') m.classList.remove('open'); });
       closeGal();
     }
   });
