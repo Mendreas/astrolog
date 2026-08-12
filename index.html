@@ -3107,7 +3107,7 @@ async function autofillObject(){
   }
   function parseDECtemplate(t){
     const m=t.match(/\{\{DEC\s*\|\s*([+-]?[\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/i);
-    if(m) return `${parseFloat(m[1])>=0?'+':''}${m[1]}°${m[2].padStart(2,'0')}'${m[3]}"`;
+    if(m) return `${parseFloat(m[1])>=0?'+':''}${m[1]}°${m[2].padStart(2,'0')}'${m[3]}\u0022`;
     return null;
   }
   // Helper: extract first number from a field value (strips templates, refs, etc.)
@@ -3179,11 +3179,11 @@ async function autofillObject(){
           if(parsed){ const el=document.getElementById('fDec'); if(el) el.value=parsed; }
           else {
             const d=getField('dec_d'), m2=getField('dec_m'), s=getField('dec_s');
-            if(d&&m2){ const el=document.getElementById('fDec'); if(el) el.value=`${parseFloat(d)>=0?'+':''}${d}°${m2.padStart(2,'0')}'${s||'0'}"`;  }
+            if(d&&m2){ const el=document.getElementById('fDec'); if(el) el.value=`${parseFloat(d)>=0?'+':''}${d}°${m2.padStart(2,'0')}'${s||'0'}\u0022`;  }
           }
         } else {
           const d=getField('dec_d'), m2=getField('dec_m'), s=getField('dec_s');
-          if(d&&m2){ const el=document.getElementById('fDec'); if(el) el.value=`${parseFloat(d)>=0?'+':''}${d}°${String(m2).padStart(2,'0')}'${(s||'0')}"`;  }
+          if(d&&m2){ const el=document.getElementById('fDec'); if(el) el.value=`${parseFloat(d)>=0?'+':''}${d}°${String(m2).padStart(2,'0')}'${(s||'0')}\u0022`;  }
         }
 
         // Magnitude
