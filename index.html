@@ -1138,7 +1138,29 @@ function setLang(l){
 }
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
-function save(){ localStorage.setItem('observations', JSON.stringify(observations)); }
+function save(){
+  try {
+    localStorage.setItem('observations', JSON.stringify(observations));
+  } catch(e){
+    if(e.name==='QuotaExceededError'||e.name==='NS_ERROR_DOM_QUOTA_REACHED'){
+      // Try saving without large images
+      const slim = observations.map(o=>({
+        ...o,
+        image: o.image&&o.image.startsWith('data:')&&o.image.length>100000 ? '[imagem grande - exportar JSON]' : o.image,
+        images: (o.images||[]).map(img=>img&&img.startsWith('data:')&&img.length>200000?'[imagem grande]':img),
+        refImage: o.refImage&&o.refImage.length>100000?'':o.refImage,
+      }));
+      try {
+        localStorage.setItem('observations', JSON.stringify(slim));
+        toast(lang==='pt'
+          ?'⚠️ Guardado sem imagens grandes — usa Exportar JSON para backup completo'
+          :'⚠️ Saved without large images — use Export JSON for full backup','warn',6000);
+      } catch(e2){
+        toast(lang==='pt'?'❌ Sem espaço! Exporta e apaga observações antigas':'❌ Storage full! Export and delete old observations','err',8000);
+      }
+    } else { throw e; }
+  }
+}
 function saveWL(){ localStorage.setItem('wishlist', JSON.stringify(wishlist)); }
 
 function toast(msg, type='success'){
@@ -3030,7 +3052,18 @@ function saveObservation(){
     observations.push({id:Date.now(), ...obs, dateAdded:new Date().toISOString()});
     toast(lang==='pt'?'Observação adicionada':'Observation added');
   }
+  // Compress images in background after save
   save(); updateBadges();
+  // Async compress existing images for this observation
+  const _savedId = obs.id;
+  compressAllImages(obs.images||[]).then(compressed=>{
+    const idx2 = observations.findIndex(o=>o.id===_savedId);
+    if(idx2>=0){
+      observations[idx2].images = compressed;
+      observations[idx2].image  = compressed[0]||observations[idx2].image;
+      try{ save(); }catch(e){}
+    }
+  });
   closeModal('obsModal');
   navigate(currentPage);
 }
@@ -3448,7 +3481,20 @@ function importData(e){
       const data = JSON.parse(ev.target.result);
       if(data.observations) {
         observations = data.observations;
-        localStorage.setItem('astro_obs', JSON.stringify(observations));
+        try {
+          localStorage.setItem('observations', JSON.stringify(observations));
+        } catch(e){
+          // Too large — strip big images on import
+          const slim = observations.map(o=>({
+            ...o,
+            image: o.image&&o.image.startsWith('data:')&&o.image.length>200000?'':o.image,
+            images:(o.images||[]).filter(img=>!img||!img.startsWith('data:')||img.length<200000),
+            refImage: o.refImage&&o.refImage.length>100000?'':o.refImage,
+          }));
+          observations = slim;
+          localStorage.setItem('observations', JSON.stringify(slim));
+          toast(lang==='pt'?'⚠️ Importado sem imagens grandes (limite de armazenamento)':'⚠️ Imported without large images (storage limit)','warn',6000);
+        }
       }
       if(data.wishlist) {
         wishlist = data.wishlist;
