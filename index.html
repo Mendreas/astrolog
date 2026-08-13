@@ -4126,9 +4126,9 @@ function renderScopeDropdown(){
   wrap.innerHTML =
     '<select class="form-select" id="fScopeSelect" onchange="onScopeSelect(this.value)" style="margin-bottom:6px">'
     + '<option value="">— Selecionar telescópio —</option>'
-    + scopes.map((s,i)=>'<option value="'+i+'">'+s.name+(s.eyepiece?' · '+s.eyepiece:'')+'</option>').join('')
+    + scopes.map((s,i)=>'<option value="'+i+'">'+s.name+'</option>').join('')
     + '</select>'
-    + '<input class="form-input" id="fEquipment" placeholder="ex: Dobson 8&quot;, 10x50" style="margin-bottom:4px">';
+    + '<input type="hidden" id="fEquipment">';
 
   // Pre-select default scope
   const def = localStorage.getItem('def_scope');
