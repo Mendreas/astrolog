@@ -804,7 +804,7 @@ body{font-family:'Raleway',sans-serif;background:var(--bg-deep);color:var(--text
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:100px">
             <label style="font-size:10.5px;color:var(--text-muted);letter-spacing:.06em">MESSIER</label>
-            <select class="form-select" id="fCatalog" onchange="onCatalogSelect(this.value)">
+            <select class="form-select" id="fCatalog">
               <option value="">—</option>
               <option value="M1">M1</option><option value="M2">M2</option><option value="M3">M3</option><option value="M4">M4</option><option value="M5">M5</option><option value="M6">M6</option><option value="M7">M7</option><option value="M8">M8</option><option value="M9">M9</option><option value="M10">M10</option><option value="M11">M11</option><option value="M12">M12</option><option value="M13">M13</option><option value="M14">M14</option><option value="M15">M15</option><option value="M16">M16</option><option value="M17">M17</option><option value="M18">M18</option><option value="M19">M19</option><option value="M20">M20</option><option value="M21">M21</option><option value="M22">M22</option><option value="M23">M23</option><option value="M24">M24</option><option value="M25">M25</option><option value="M26">M26</option><option value="M27">M27</option><option value="M28">M28</option><option value="M29">M29</option><option value="M30">M30</option><option value="M31">M31</option><option value="M32">M32</option><option value="M33">M33</option><option value="M34">M34</option><option value="M35">M35</option><option value="M36">M36</option><option value="M37">M37</option><option value="M38">M38</option><option value="M39">M39</option><option value="M40">M40</option><option value="M41">M41</option><option value="M42">M42</option><option value="M43">M43</option><option value="M44">M44</option><option value="M45">M45</option><option value="M46">M46</option><option value="M47">M47</option><option value="M48">M48</option><option value="M49">M49</option><option value="M50">M50</option><option value="M51">M51</option><option value="M52">M52</option><option value="M53">M53</option><option value="M54">M54</option><option value="M55">M55</option><option value="M56">M56</option><option value="M57">M57</option><option value="M58">M58</option><option value="M59">M59</option><option value="M60">M60</option><option value="M61">M61</option><option value="M62">M62</option><option value="M63">M63</option><option value="M64">M64</option><option value="M65">M65</option><option value="M66">M66</option><option value="M67">M67</option><option value="M68">M68</option><option value="M69">M69</option><option value="M70">M70</option><option value="M71">M71</option><option value="M72">M72</option><option value="M73">M73</option><option value="M74">M74</option><option value="M75">M75</option><option value="M76">M76</option><option value="M77">M77</option><option value="M78">M78</option><option value="M79">M79</option><option value="M80">M80</option><option value="M81">M81</option><option value="M82">M82</option><option value="M83">M83</option><option value="M84">M84</option><option value="M85">M85</option><option value="M86">M86</option><option value="M87">M87</option><option value="M88">M88</option><option value="M89">M89</option><option value="M90">M90</option><option value="M91">M91</option><option value="M92">M92</option><option value="M93">M93</option><option value="M94">M94</option><option value="M95">M95</option><option value="M96">M96</option><option value="M97">M97</option><option value="M98">M98</option><option value="M99">M99</option><option value="M100">M100</option><option value="M101">M101</option><option value="M102">M102</option><option value="M103">M103</option><option value="M104">M104</option><option value="M105">M105</option><option value="M106">M106</option><option value="M107">M107</option><option value="M108">M108</option><option value="M109">M109</option><option value="M110">M110</option>
             </select>
@@ -852,10 +852,12 @@ body{font-family:'Raleway',sans-serif;background:var(--bg-deep);color:var(--text
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label">🔭 Telescópio / Binóculos</label>
-          <input class="form-input" id="fEquipment" placeholder="ex: Dobson 8&quot;, 10x50">
+          <div id="fEquipmentWrap">
+            <input class="form-input" id="fEquipment" placeholder="ex: Dobson 8&quot;, 10x50">
+          </div>
         </div>
         <div class="form-group">
-          <label class="form-label">🔍 Ocular</label>
+          <label class="form-label">🔍 Focal Length</label>
           <input class="form-input" id="fEyepiece" placeholder="ex: 25mm, 10mm">
         </div>
       </div>
@@ -3004,7 +3006,7 @@ function addTelescope(){
   const row = document.createElement('div');
   row.style.cssText='display:flex;gap:8px;align-items:center;margin-bottom:8px';
   row.innerHTML='<input class="form-input" style="flex:1" placeholder="Telescópio / Binóculos" id="scope_name_'+i+'">'
-    +'<input class="form-input" style="flex:1" placeholder="Ocular" id="scope_eye_'+i+'">'
+    +'<input class="form-input" style="flex:1" placeholder="Focal Length" id="scope_eye_'+i+'">'
     +'<button onclick="this.parentNode.remove()" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#ef4444;border-radius:7px;padding:6px 10px;cursor:pointer;font-size:12px;flex-shrink:0">✕</button>';
   list.appendChild(row);
   document.getElementById('scope_name_'+i)?.focus();
@@ -3088,6 +3090,20 @@ function openAddModal(id=null){
     const _ipw=document.getElementById('imgPreviewWrap'); if(_ipw) _ipw.style.display='none';
   }
   openModal('obsModal');
+  // Build telescope dropdown after modal is visible
+  const _eid = editId;
+  setTimeout(()=>{
+    renderScopeDropdown();
+    if(_eid){
+      const _o = observations.find(o=>o.id===_eid);
+      if(_o){
+        const eq=document.getElementById('fEquipment');
+        const ey=document.getElementById('fEyepiece');
+        if(eq&&_o.equipment) eq.value=_o.equipment;
+        if(ey&&_o.eyepiece)  ey.value=_o.eyepiece;
+      }
+    }
+  }, 30);
 }
 
 function saveObservation(){
@@ -3145,12 +3161,12 @@ function saveObservation(){
 }
 
 async function autofillObject(){
-  const name = document.getElementById('fName').value.trim();
+  const nameEl = document.getElementById('fName');
+  const name = nameEl ? nameEl.value.trim() : '';
   if(!name){ toast(lang==='pt'?'Introduz um nome primeiro':'Enter a name first','error'); return; }
   const btn = document.getElementById('autofillBtn');
   btn.disabled=true; btn.textContent='⏳ A carregar...';
 
-  // Helper: parse {{RA|h|m|s}} or {{DEC|d|m|s}}
   function parseRAtemplate(t){
     const m=t.match(/\{\{RA\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/i);
     if(m) return `${m[1]}h${m[2].padStart(2,'0')}m${m[3]}s`;
@@ -3158,26 +3174,17 @@ async function autofillObject(){
   }
   function parseDECtemplate(t){
     const m=t.match(/\{\{DEC\s*\|\s*([+-]?[\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/i);
-    if(m) return `${parseFloat(m[1])>=0?'+':''}${m[1]}°${m[2].padStart(2,'0')}'${m[3]}\u0022`;
+    if(m) return `${parseFloat(m[1])>=0?'+':''}${m[1]}\u00b0${m[2].padStart(2,'0')}'${m[3]}\u0022`;
     return null;
   }
-  // Helper: extract first number from a field value (strips templates, refs, etc.)
-  function firstNum(t){
-    const m=t.replace(/\{\{[^}]+\}\}/g,' ').replace(/<[^>]+>/g,' ').match(/([+-]?[\d]+(?:\.[\d]+)?)/);
-    return m ? parseFloat(m[1]) : null;
-  }
-  // Helper: extract distance in ly
+  function firstNum(t){ const m=t.replace(/\{\{[^}]+\}\}/g,' ').replace(/<[^>]+>/g,' ').match(/([+-]?[\d]+(?:\.[\d]+)?)/); return m?parseFloat(m[1]):null; }
   function parseDist(val){
-    // {{convert|7.22|...|Mpc|...}} → Mpc to ly
     const mMpc=val.match(/\{\{convert\s*\|\s*([\d.]+)\s*\|[^|]*\|\s*Mpc/i);
     if(mMpc) return {ly:parseFloat(mMpc[1])*3.26156e6};
-    // {{convert|...|Mly...}}
     const mMLy=val.match(/\{\{convert\s*\|\s*([\d.]+)\s*\|[^|]*\|\s*Mly/i);
     if(mMLy) return {ly:parseFloat(mMLy[1])*1e6};
-    // "25.2 ± 1.0 M[[light-year|ly]]" or "25.2 Mly" format
     const mMlyPlain=val.match(/([\d.]+)\s*(?:[±+\-][^M\d]*)?\s*M(?:ly|\[\[)/i);
     if(mMlyPlain) return {ly:parseFloat(mMlyPlain[1])*1e6};
-    // {{val|2570|90|...}} → plain number
     const n=firstNum(val);
     if(n) return {ly:n};
     return null;
@@ -3185,120 +3192,186 @@ async function autofillObject(){
 
   (async()=>{
     try{
-      // ── 1. Wikipedia summary (description + thumbnail) ──────────────────────
-      const wikiRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`);
-      const wiki = wikiRes.ok ? await wikiRes.json() : null;
-      if(wiki?.extract){
-        const el=document.getElementById('fDesc');
-        if(el) el.value = wiki.extract.split('. ').slice(0,3).join('. ')+'.';
-      }
-      if(wiki?.thumbnail?.source){
-        const refImg=document.getElementById('fRefImgUrl'); if(refImg) refImg.value=wiki.thumbnail.source;
-        const refWrap=document.getElementById('refImgPreviewWrap'); if(refWrap) refWrap.style.display='block';
-        const refEl=document.getElementById('refImgPreview'); if(refEl) refEl.src=wiki.thumbnail.source;
+      // 1. Wikipedia summary (PT first, then EN)
+      let wiki = null;
+      // Try PT
+      const wikiPtRes = await fetch(`https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`);
+      if(wikiPtRes.ok){ const d=await wikiPtRes.json(); if(d.extract && d.extract.length>50) wiki={...d, lang:'pt'}; }
+      // Fallback EN
+      if(!wiki){
+        const wikiEnRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`);
+        if(wikiEnRes.ok){ const d=await wikiEnRes.json(); if(d.extract) wiki={...d, lang:'en'}; }
       }
 
-      // ── 2. Wikipedia infobox wikitext ───────────────────────────────────────
+      // 2. Wikipedia infobox (EN for data — more complete)
       const pageTitle = wiki?.title || name;
       const parseUrl = `https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(pageTitle)}&prop=wikitext&format=json&origin=*`;
+      let wikitext = '';
       const parseRes = await fetch(parseUrl);
       if(parseRes.ok){
         const parseData = await parseRes.json();
-        const wikitext = parseData?.parse?.wikitext?.['*'] || '';
-
-        // Extract field value from wikitext (handles multi-line)
-        function getField(key){
-          const m=wikitext.match(new RegExp('\\|\\s*'+key+'\\s*=\\s*([^\\n]+)','i'));
-          return m ? m[1].trim() : null;
-        }
-
-        // RA
-        const raVal=getField('ra');
-        if(raVal){
-          const parsed=parseRAtemplate(raVal);
-          if(parsed){ const el=document.getElementById('fRA'); if(el) el.value=parsed; }
-          else {
-            // try ra_h/ra_m/ra_s
-            const h=getField('ra_h'), m2=getField('ra_m'), s=getField('ra_s');
-            if(h&&m2){ const el=document.getElementById('fRA'); if(el) el.value=`${h}h${m2.padStart(2,'0')}m${(s||'0')}s`; }
+        wikitext = parseData?.parse?.wikitext?.['*'] || '';
+        // Follow redirect if needed
+        if(wikitext.startsWith('#REDIRECT')){
+          const redir = wikitext.match(/\[\[([^\]]+)\]\]/);
+          if(redir){
+            const redirUrl = `https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(redir[1])}&prop=wikitext&format=json&origin=*`;
+            const rRes = await fetch(redirUrl);
+            if(rRes.ok){ const rData=await rRes.json(); wikitext=rData?.parse?.wikitext?.['*']||''; }
           }
-        } else {
-          const h=getField('ra_h'), m2=getField('ra_m'), s=getField('ra_s');
-          if(h&&m2){ const el=document.getElementById('fRA'); if(el) el.value=`${h}h${String(m2).padStart(2,'0')}m${(s||'0')}s`; }
-        }
-
-        // Dec
-        const decVal=getField('dec');
-        if(decVal){
-          const parsed=parseDECtemplate(decVal);
-          if(parsed){ const el=document.getElementById('fDec'); if(el) el.value=parsed; }
-          else {
-            const d=getField('dec_d'), m2=getField('dec_m'), s=getField('dec_s');
-            if(d&&m2){ const el=document.getElementById('fDec'); if(el) el.value=`${parseFloat(d)>=0?'+':''}${d}°${m2.padStart(2,'0')}'${s||'0'}\u0022`;  }
-          }
-        } else {
-          const d=getField('dec_d'), m2=getField('dec_m'), s=getField('dec_s');
-          if(d&&m2){ const el=document.getElementById('fDec'); if(el) el.value=`${parseFloat(d)>=0?'+':''}${d}°${String(m2).padStart(2,'0')}'${(s||'0')}\u0022`;  }
-        }
-
-        // Magnitude
-        const magVal=getField('appmag_v')||getField('magnitude')||getField('apparent_magnitude');
-        if(magVal){ const n=firstNum(magVal); if(n!==null){ const el=document.getElementById('fMag'); if(el) el.value=n.toFixed(1); }}
-
-        // Distance — try dist_ly first, then dist_mly, then dist_pc
-        const distLy=getField('dist_ly')||getField('distance_ly');
-        const distMly=getField('dist_mly');
-        const distPc=getField('dist_pc')||getField('distance_pc');
-        let distResult=null;
-        if(distLy) distResult=parseDist(distLy);
-        else if(distMly){ const n=firstNum(distMly); if(n) distResult={ly:n*1e6}; }
-        else if(distPc){ const n=firstNum(distPc); if(n) distResult={ly:n*3.26156}; }
-        if(distResult){
-          const dEl=document.getElementById('fDist'), uEl=document.getElementById('fDistUnit');
-          if(dEl&&uEl){
-            const ly=distResult.ly;
-            if(ly>=1e9){dEl.value=(ly/1e9).toFixed(2);uEl.value='Gly';}
-            else if(ly>=1e6){dEl.value=(ly/1e6).toFixed(2);uEl.value='Mly';}
-            else {dEl.value=Math.round(ly);uEl.value='ly';}
-          }
-        }
-
-        // Type
-        const typeKw=wikitext.toLowerCase();
-        const typeMap=[['galaxy','galaxy'],['nebula','nebula'],['cluster','cluster'],['planet','planet'],['comet','comet'],['star','star']];
-        for(const [kw,t] of typeMap){
-          if(typeKw.includes(kw)){ const el=document.getElementById('fType'); if(el){el.value=t;updateTypeIcon(t);} break; }
-        }
-
-        // Catalog IDs
-        const mWiki=wikitext.match(/Messier[^\w](\d+)|[^A-Za-z0-9]M(\d{1,3})[^A-Za-z0-9]/);
-        const ngcWiki=wikitext.match(/(?:\[\[[^\]]*\|)?NGC\]?\]?\s*(\d+)/i);
-        const caldwellWiki=wikitext.match(/(?:\[\[[^\]]*\|)?Caldwell\]?\]?\s*(\d+)/i);
-        if(mWiki){ const num=mWiki[1]||mWiki[2]; if(num){ const sel=document.getElementById('fCatalog'); if(sel&&!sel.value) sel.value='M'+num; }}
-        if(ngcWiki){ const inp=document.getElementById('fCatalogManual'); if(inp&&!inp.value) inp.value='NGC '+ngcWiki[1]; }
-        if(caldwellWiki){ const num=caldwellWiki[1]; if(num){ const sel=document.getElementById('fCatalogC'); if(sel&&!sel.value) sel.value='C'+num; }}
-        // Also try to detect NGC from page title (e.g. "NGC 6946")
-        if(!document.getElementById('fCatalogManual')?.value){
-          const titleNgc=(pageTitle||'').match(/NGC\s*(\d+)/i);
-          if(titleNgc){ const inp=document.getElementById('fCatalogManual'); if(inp) inp.value='NGC '+titleNgc[1]; }
         }
       }
 
-      // ── 3. Catalog IDs from name field itself ───────────────────────────────
-      const mMatch=name.match(/\bM(\d+)\b/i);
-      const cMatch=name.match(/\bC(\d+)\b/i);
-      const ngcMatch=name.match(/\bNGC\s*(\d+)\b/i);
-      if(mMatch){ const sel=document.getElementById('fCatalog'); if(sel&&!sel.value) sel.value='M'+mMatch[1]; }
-      if(cMatch){ const sel=document.getElementById('fCatalogC'); if(sel&&!sel.value) sel.value='C'+cMatch[1]; }
-      if(ngcMatch){ const inp=document.getElementById('fCatalogManual'); if(inp&&!inp.value) inp.value='NGC '+ngcMatch[1]; }
+      function getField(key){
+        const m=wikitext.match(new RegExp('\\|\\s*'+key+'\\s*=\\s*([^\\n]+)','i'));
+        return m?m[1].trim():null;
+      }
 
-      toast(lang==='pt'?'✅ Dados carregados!':'✅ Data loaded!');
+      // Extract all data
+      let ra='', dec='', mag='', dist='', distUnit='ly', type='', desc='', refImg='';
+      let messier='', caldwell='', ngc='';
+
+      // Description (prefer PT)
+      if(wiki?.extract) desc = wiki.extract.split('. ').slice(0,3).join('. ')+'.';
+
+      // Reference image
+      if(wiki?.thumbnail?.source) refImg = wiki.thumbnail.source;
+
+      // RA
+      const raVal=getField('ra');
+      if(raVal){ const p=parseRAtemplate(raVal); if(p) ra=p; }
+      if(!ra){ const h=getField('ra_h'),m2=getField('ra_m'),s=getField('ra_s'); if(h&&m2) ra=`${h}h${m2.padStart(2,'0')}m${s||'0'}s`; }
+
+      // Dec
+      const decVal=getField('dec');
+      if(decVal){ const p=parseDECtemplate(decVal); if(p) dec=p; }
+      if(!dec){ const d=getField('dec_d'),m2=getField('dec_m'),s=getField('dec_s'); if(d&&m2) dec=`${parseFloat(d)>=0?'+':''}${d}\u00b0${m2.padStart(2,'0')}'${s||'0'}\u0022`; }
+
+      // Magnitude
+      const magVal=getField('appmag_v')||getField('magnitude')||getField('apparent_magnitude');
+      if(magVal){ const n=firstNum(magVal); if(n!==null) mag=String(n); }
+
+      // Distance
+      const distLy=getField('dist_ly')||getField('distance_ly');
+      const distMly=getField('dist_mly');
+      const distPc=getField('dist_pc')||getField('distance_pc');
+      let distResult=null;
+      if(distLy) distResult=parseDist(distLy);
+      else if(distMly){ const n=firstNum(distMly); if(n) distResult={ly:n*1e6}; }
+      else if(distPc){ const n=firstNum(distPc); if(n) distResult={ly:n*3.26156}; }
+      if(distResult){
+        const ly=distResult.ly;
+        if(ly>=1e9){dist=(ly/1e9).toFixed(2);distUnit='Gly';}
+        else if(ly>=1e6){dist=(ly/1e6).toFixed(2);distUnit='Mly';}
+        else{dist=Math.round(ly).toString();distUnit='ly';}
+      }
+
+      // Type
+      const typeKw=wikitext.toLowerCase();
+      const typeMap=[['galaxy','galaxy'],['nebula','nebula'],['cluster','cluster'],['planet','planet'],['comet','comet'],['star','star']];
+      for(const [kw,t] of typeMap){ if(typeKw.includes(kw)){type=t;break;} }
+
+      // Catalogs from wikitext
+      const mWiki=wikitext.match(/Messier[\W](\d+)|[^A-Za-z0-9]M(\d{1,3})[^A-Za-z0-9]/);
+      const ngcWiki=wikitext.match(/(?:\[\[[^\]]*\|)?NGC\]?\]?\s*(\d+)/i);
+      const caldwellWiki=wikitext.match(/(?:\[\[[^\]]*\|)?Caldwell\]?\]?\s*(\d+)/i);
+      if(mWiki){ const n=mWiki[1]||mWiki[2]; if(n) messier='M'+n; }
+      if(ngcWiki) ngc='NGC '+ngcWiki[1];
+      if(caldwellWiki) caldwell='C'+caldwellWiki[1];
+      // Fallback: NGC from page title
+      if(!ngc){ const tn=pageTitle.match(/NGC\s*(\d+)/i); if(tn) ngc='NGC '+tn[1]; }
+      // Name field catalogs
+      const mName=name.match(/\bM(\d+)\b/i); if(mName&&!messier) messier='M'+mName[1];
+      const cName=name.match(/\bC(\d+)\b/i); if(cName&&!caldwell) caldwell='C'+cName[1];
+      const nName=name.match(/\bNGC\s*(\d+)\b/i); if(nName&&!ngc) ngc='NGC '+nName[1];
+
+      // Show confirmation modal
+      showAutofillModal({ra,dec,mag,dist,distUnit,type,desc,refImg,messier,caldwell,ngc,pageTitle});
+
     } catch(e){
       console.warn('Autofill error:',e);
-      toast(lang==='pt'?'Dados parcialmente carregados':'Partial data loaded','warn');
+      toast(lang==='pt'?'Erro ao carregar dados':'Error loading data','err');
     }
-    btn.disabled=false; btn.textContent='🔍 Auto-fill';
+    btn.disabled=false; btn.textContent='\u{1F50D} Auto-fill';
   })();
+}
+
+function showAutofillModal(data){
+  // Build modal HTML
+  const typeOpts = ['star','galaxy','nebula','cluster','planet','comet','moon','other']
+    .map(t=>`<option value="${t}" ${data.type===t?'selected':''}>${typeLabel(t)}</option>`).join('');
+
+  // Messier options
+  const mOpts='<option value="">—</option>'+Array.from({length:110},(_,i)=>`<option value="M${i+1}" ${data.messier==='M'+(i+1)?'selected':''}>${'M'+(i+1)}</option>`).join('');
+  // Caldwell options
+  const cOpts='<option value="">—</option>'+Array.from({length:109},(_,i)=>`<option value="C${i+1}" ${data.caldwell==='C'+(i+1)?'selected':''}>${'C'+(i+1)}</option>`).join('');
+
+  document.getElementById('autofillModalBody').innerHTML = `
+    <div style="font-size:11px;color:rgba(200,155,50,.5);margin-bottom:12px;letter-spacing:.05em">
+      ${lang==='pt'?'Dados encontrados para':'Data found for'}: <b style="color:#e8b84b">${data.pageTitle}</b>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+      <div><label style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:3px">MESSIER</label>
+        <select class="form-select" id="af_messier">${mOpts}</select></div>
+      <div><label style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:3px">CALDWELL</label>
+        <select class="form-select" id="af_caldwell">${cOpts}</select></div>
+      <div><label style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:3px">NGC/OUTRO</label>
+        <input class="form-input" id="af_ngc" value="${data.ngc||''}" placeholder="NGC 224"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <div><label style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:3px">TIPO</label>
+        <select class="form-select" id="af_type">${typeOpts}</select></div>
+      <div><label style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:3px">MAGNITUDE</label>
+        <input class="form-input" id="af_mag" value="${data.mag||''}" placeholder="ex: 5.6"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+      <div><label style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:3px">AR</label>
+        <input class="form-input" id="af_ra" value="${data.ra||''}" placeholder="20h34m52s"></div>
+      <div><label style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:3px">DEC</label>
+        <input class="form-input" id="af_dec" value="${data.dec||''}" placeholder="+60°09'14&quot;"></div>
+      <div><label style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:3px">DISTÂNCIA</label>
+        <div style="display:flex;gap:4px">
+          <input class="form-input" id="af_dist" value="${data.dist||''}" placeholder="25.2" style="flex:1">
+          <select class="form-select" id="af_distUnit" style="flex:0 0 80px">
+            <option value="ly" ${data.distUnit==='ly'?'selected':''}>a.l.</option>
+            <option value="Mly" ${data.distUnit==='Mly'?'selected':''}>M a.l.</option>
+            <option value="Gly" ${data.distUnit==='Gly'?'selected':''}>G a.l.</option>
+            <option value="pc" ${data.distUnit==='pc'?'selected':''}>pc</option>
+          </select>
+        </div></div>
+    </div>
+    ${data.refImg?`<div style="margin-bottom:10px"><label style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:3px">IMAGEM DE REFERÊNCIA</label>
+      <img src="${data.refImg}" style="width:100%;max-height:120px;object-fit:cover;border-radius:8px;opacity:.8"></div>`:''}
+    <div><label style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:3px">DESCRIÇÃO</label>
+      <textarea class="form-input" id="af_desc" rows="3" style="resize:vertical">${data.desc||''}</textarea></div>
+    <input type="hidden" id="af_refImg" value="${data.refImg||''}">
+  `;
+  openModal('autofillModal');
+}
+
+function applyAutofill(){
+  const g = id => document.getElementById(id);
+  const v = id => (g(id)?.value||'').trim();
+
+  // Apply to form fields
+  const m=v('af_messier'); if(m){ const s=g('fCatalog'); if(s) s.value=m; }
+  const c=v('af_caldwell'); if(c){ const s=g('fCatalogC'); if(s) s.value=c; }
+  const n=v('af_ngc'); const ni=g('fCatalogManual'); if(ni) ni.value=n;
+  const tp=v('af_type'); if(tp){ const s=g('fType'); if(s){s.value=tp;updateTypeIcon(tp);} }
+  const mg=v('af_mag'); const mi=g('fMag'); if(mi) mi.value=mg;
+  const ra=v('af_ra'); const ri=g('fRA'); if(ri) ri.value=ra;
+  const dc=v('af_dec'); const di=g('fDec'); if(di) di.value=dc;
+  const ds=v('af_dist'); const dsi=g('fDist'); if(dsi) dsi.value=ds;
+  const du=v('af_distUnit'); const dui=g('fDistUnit'); if(dui) dui.value=du;
+  const desc=v('af_desc'); const dei=g('fDesc'); if(dei) dei.value=desc;
+  const ri2=v('af_refImg');
+  if(ri2){
+    const rfu=g('fRefImgUrl'); if(rfu) rfu.value=ri2;
+    const rfw=g('refImgPreviewWrap'); if(rfw) rfw.style.display='block';
+    const rfe=g('refImgPreview'); if(rfe) rfe.src=ri2;
+  }
+  closeModal('autofillModal');
+  toast(lang==='pt'?'✅ Dados aplicados!':'✅ Data applied!');
 }
 
 
@@ -3411,6 +3484,21 @@ function clearImage(){
   const f=document.getElementById('fImgFile'); if(f) f.value='';
   userImages=[];
   renderUserImgThumbs();
+  // Run scope dropdown AFTER current call stack (so DOM is ready)
+  // then restore equipment value if editing
+  const _editEquip = id && (() => {
+    const obs = observations.find(o=>o.id===id);
+    return obs ? {eq: obs.equipment||'', ey: obs.eyepiece||''} : null;
+  })();
+  setTimeout(()=>{
+    renderScopeDropdown();
+    if(_editEquip){
+      const eq=document.getElementById('fEquipment');
+      const ey=document.getElementById('fEyepiece');
+      if(eq) eq.value=_editEquip.eq;
+      if(ey) ey.value=_editEquip.ey;
+    }
+  }, 0);
 }
 
 // ── DETAIL MODAL ─────────────────────────────────────────────────────────────
@@ -3455,7 +3543,7 @@ function showDetail(id){
   if(obs.ra)           rows.push(['AR', obs.ra]);
   if(obs.dec)          rows.push(['DEC', obs.dec]);
   if(obs.equipment)    rows.push(['Telesc\u00f3pio', obs.equipment]);
-  if(obs.eyepiece)     rows.push(['Ocular', obs.eyepiece]);
+  if(obs.eyepiece)     rows.push(['Focal Length', obs.eyepiece]);
   if(obs.seeing)       rows.push(['Seeing', '<span class="stars">'+starsDisp(obs.seeing)+'</span> '+seeingLbl(obs.seeing)]);
   if(obs.transparency) rows.push(['Transpar\u00eancia', '<span class="stars">'+starsDisp(obs.transparency)+'</span>']);
   if(obs.description)  rows.push(['Notas', '<div style="white-space:pre-wrap;font-size:12px;line-height:1.6">'+obs.description.replace(/</g,'&lt;')+'</div>']);
@@ -3873,18 +3961,7 @@ function globalSearch(q){
 }
 
 function onCatalogSelect(val){
-  const manual = document.getElementById('fCatalogManual');
-  const label  = document.getElementById('fCatalogLabel');
-  if(val === 'ngc_manual'){
-    manual.style.display='block';
-    if(label) label.textContent='';
-  } else {
-    manual.style.display='none';
-    if(label) label.textContent = val ? '✓ '+val : '';
-    // If name field is empty, suggest the catalog ID
-    const fName = document.getElementById('fName');
-    if(fName && !fName.value.trim() && val) fName.value = val;
-  }
+  // NGC/Outro field is always visible — no need to hide/show
 }
 function onCatalogManualInput(val){
   const label = document.getElementById('fCatalogLabel');
@@ -4005,7 +4082,7 @@ function renderTelescopeList(){
   list.innerHTML = scopes.map((sc,i)=>
     '<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">'
     +'<input class="form-input" style="flex:1.5" placeholder="Telescópio / Binóculos" value="'+sc.name.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'" id="scope_name_'+i+'">'
-    +'<input class="form-input" style="flex:1" placeholder="Ocular" value="'+(sc.eyepiece||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'" id="scope_eye_'+i+'">'
+    +'<input class="form-input" style="flex:1" placeholder="Focal Length" value="'+(sc.eyepiece||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'" id="scope_eye_'+i+'">'
     +(scopes.length>1?'<button onclick="removeTelescope('+i+')" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#ef4444;border-radius:7px;padding:6px 10px;cursor:pointer;font-size:13px;flex-shrink:0">✕</button>':'')
     +'</div>'
   ).join('');
@@ -4028,6 +4105,68 @@ async function clearImageStorage(){
   await new Promise(r=>tx.oncomplete=r);
   toast(lang==='pt'?'✅ '+freed+' observações com imagens grandes removidas':'✅ '+freed+' observations with large images removed');
   navigate(currentPage);
+}
+
+function renderScopeDropdown(){
+  const wrap = document.getElementById('fEquipmentWrap');
+  if(!wrap){ setTimeout(renderScopeDropdown, 50); return; }
+  let scopes = [];
+  try{ scopes = JSON.parse(localStorage.getItem('astro_telescopes')||'[]'); }catch(e){}
+  console.log('[AstroLogs] renderScopeDropdown: scopes=', scopes.length, scopes);
+
+  if(scopes.length === 0){
+    // No saved scopes — plain input
+    wrap.innerHTML = '<input class="form-input" id="fEquipment" placeholder="ex: Dobson 8&quot;, 10x50">';
+    const s = localStorage.getItem('def_scope')||'';
+    const el=document.getElementById('fEquipment'); if(el&&s) el.value=s;
+    return;
+  }
+
+  // Always show dropdown when scopes are saved
+  wrap.innerHTML =
+    '<select class="form-select" id="fScopeSelect" onchange="onScopeSelect(this.value)" style="margin-bottom:6px">'
+    + '<option value="">— Selecionar telescópio —</option>'
+    + scopes.map((s,i)=>'<option value="'+i+'">'+s.name+(s.eyepiece?' · '+s.eyepiece:'')+'</option>').join('')
+    + '</select>'
+    + '<input class="form-input" id="fEquipment" placeholder="ex: Dobson 8&quot;, 10x50" style="margin-bottom:4px">';
+
+  // Pre-select default scope
+  const def = localStorage.getItem('def_scope');
+  const defIdx = def ? scopes.findIndex(s=>s.name===def) : 0;
+  const idx2 = defIdx >= 0 ? defIdx : 0;
+  const sel = document.getElementById('fScopeSelect');
+  if(sel){ sel.value = String(idx2); onScopeSelect(String(idx2)); }
+}
+function onScopeSelect(idx){
+  let scopes = [];
+  try{ scopes = JSON.parse(localStorage.getItem('astro_telescopes')||'[]'); }catch(e){}
+  const s = scopes[parseInt(idx)];
+  if(!s) return;
+  const eq = document.getElementById('fEquipment');
+  const ey = document.getElementById('fEyepiece');
+  if(eq) eq.value = s.name;
+  if(ey) ey.value = s.eyepiece||'';
+}
+
+function compressImage(dataUrl, maxWidth=1200, quality=0.75){
+  return new Promise(resolve=>{
+    if(!dataUrl || !dataUrl.startsWith('data:image')) { resolve(dataUrl); return; }
+    const img = new window.Image();
+    img.onload = ()=>{
+      const w = Math.min(img.width, maxWidth);
+      const h = Math.round(img.height * w / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width=w; canvas.height=h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img,0,0,w,h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = ()=>resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+function compressAllImages(images){
+  return Promise.all((images||[]).map(src=>compressImage(src)));
 }
 document.addEventListener('DOMContentLoaded', ()=>{
   // Global error handler
@@ -4236,6 +4375,24 @@ document.addEventListener('DOMContentLoaded', ()=>{
       <div id="badgeModalTitle" style="font-size:18px;font-weight:700;font-family:'Cinzel',serif;color:#e8b84b;margin-bottom:5px"></div>
       <div id="badgeModalSub" style="font-size:12px;color:var(--text-muted);margin-bottom:12px"></div>
       <div id="badgeModalDesc" style="font-size:12.5px;color:var(--text-dim);line-height:1.7;text-align:left"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- AUTOFILL CONFIRMATION MODAL -->
+<div class="modal-overlay" id="autofillModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border)">
+      <div class="modal-title" style="font-family:'Cinzel',serif;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#e8b84b">
+        🔍 Dados Auto-fill — Confirmar
+      </div>
+      <button onclick="closeModal('autofillModal')" style="background:none;border:none;color:var(--text-dim);font-size:22px;cursor:pointer;line-height:1">✕</button>
+    </div>
+    <div class="modal-body" style="padding:16px 18px;max-height:80vh;overflow-y:auto" id="autofillModalBody"></div>
+    <div style="padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end">
+      <button onclick="closeModal('autofillModal')" class="btn btn-secondary">Cancelar</button>
+      <button onclick="applyAutofill()" class="btn btn-primary">✅ Aplicar</button>
     </div>
   </div>
 </div>
