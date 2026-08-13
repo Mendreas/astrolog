@@ -3165,128 +3165,123 @@ async function autofillObject(){
   const name = nameEl ? nameEl.value.trim() : '';
   if(!name){ toast(lang==='pt'?'Introduz um nome primeiro':'Enter a name first','error'); return; }
   const btn = document.getElementById('autofillBtn');
-  btn.disabled=true; btn.textContent='⏳ A carregar...';
+  btn.disabled=true; btn.textContent='\u23F3 A carregar...';
 
+  // ── Helpers ────────────────────────────────────────────────────────────────
   function parseRAtemplate(t){
-    const m=t.match(/\{\{RA\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/i);
+    // Handle comma or period as decimal separator
+    const m=t.replace(/,/g,'.').match(/\{\{RA\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/i);
     if(m) return `${m[1]}h${m[2].padStart(2,'0')}m${m[3]}s`;
     return null;
   }
   function parseDECtemplate(t){
-    const m=t.match(/\{\{DEC\s*\|\s*([+-]?[\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/i);
+    const m=t.replace(/,/g,'.').match(/\{\{DEC\s*\|\s*([+-]?[\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/i);
     if(m) return `${parseFloat(m[1])>=0?'+':''}${m[1]}\u00b0${m[2].padStart(2,'0')}'${m[3]}\u0022`;
     return null;
   }
-  function firstNum(t){ const m=t.replace(/\{\{[^}]+\}\}/g,' ').replace(/<[^>]+>/g,' ').match(/([+-]?[\d]+(?:\.[\d]+)?)/); return m?parseFloat(m[1]):null; }
+  function firstNum(t){
+    // Handle Unicode minus (−) and comma decimals
+    const cleaned = t.replace(/\u2212/g,'-').replace(/,/g,'.').replace(/\{\{[^}]+\}\}/g,' ').replace(/<[^>]+>/g,' ');
+    const m=cleaned.match(/([+-]?[\d]+(?:\.[\d]+)?)/);
+    return m?parseFloat(m[1]):null;
+  }
   function parseDist(val){
-    const mMpc=val.match(/\{\{convert\s*\|\s*([\d.]+)\s*\|[^|]*\|\s*Mpc/i);
+    const v=val.replace(/,/g,'.');
+    const mMpc=v.match(/\{\{convert\s*\|\s*([\d.]+)\s*\|[^|]*\|\s*Mpc/i);
     if(mMpc) return {ly:parseFloat(mMpc[1])*3.26156e6};
-    const mMLy=val.match(/\{\{convert\s*\|\s*([\d.]+)\s*\|[^|]*\|\s*Mly/i);
+    const mMLy=v.match(/\{\{convert\s*\|\s*([\d.]+)\s*\|[^|]*\|\s*Mly/i);
     if(mMLy) return {ly:parseFloat(mMLy[1])*1e6};
-    const mMlyPlain=val.match(/([\d.]+)\s*(?:[±+\-][^M\d]*)?\s*M(?:ly|\[\[)/i);
+    const mMlyPlain=v.match(/([\d.]+)\s*(?:[±+\-][^M\d]*)?\s*M(?:ly|\[\[)/i);
     if(mMlyPlain) return {ly:parseFloat(mMlyPlain[1])*1e6};
-    const n=firstNum(val);
-    if(n) return {ly:n};
+    const n=firstNum(v);
+    if(n&&n>0) return {ly:n};
     return null;
+  }
+  function getField(key, text){
+    const m=text.match(new RegExp('[|{]\\s*'+key+'\\s*=\\s*([^\\n]+)','i'));
+    return m?m[1].trim():null;
   }
 
   (async()=>{
     try{
-      // 1. Wikipedia summary (PT first, then EN)
-      let wiki = null;
-      // Try PT
-      const wikiPtRes = await fetch(`https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`);
-      if(wikiPtRes.ok){ const d=await wikiPtRes.json(); if(d.extract && d.extract.length>50) wiki={...d, lang:'pt'}; }
-      // Fallback EN
-      if(!wiki){
-        const wikiEnRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`);
-        if(wikiEnRes.ok){ const d=await wikiEnRes.json(); if(d.extract) wiki={...d, lang:'en'}; }
-      }
+      // 1. PT Wikipedia summary first (description in PT)
+      let wiki=null, ptWikitext='', enWikitext='';
+      const ptRes = await fetch(`https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`);
+      if(ptRes.ok){ const d=await ptRes.json(); if(d.extract&&d.extract.length>50) wiki={...d,lang:'pt'}; }
 
-      // 2. Wikipedia infobox (EN for data — more complete)
-      const pageTitle = wiki?.title || name;
-      const parseUrl = `https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(pageTitle)}&prop=wikitext&format=json&origin=*`;
-      let wikitext = '';
-      const parseRes = await fetch(parseUrl);
-      if(parseRes.ok){
-        const parseData = await parseRes.json();
-        wikitext = parseData?.parse?.wikitext?.['*'] || '';
-        // Follow redirect if needed
-        if(wikitext.startsWith('#REDIRECT')){
-          const redir = wikitext.match(/\[\[([^\]]+)\]\]/);
-          if(redir){
-            const redirUrl = `https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(redir[1])}&prop=wikitext&format=json&origin=*`;
-            const rRes = await fetch(redirUrl);
-            if(rRes.ok){ const rData=await rRes.json(); wikitext=rData?.parse?.wikitext?.['*']||''; }
-          }
+      // 2. PT wikitext (for infobox data)
+      const ptTitle = wiki?.title || name;
+      const ptParseRes = await fetch(`https://pt.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(ptTitle)}&prop=wikitext&format=json&origin=*`);
+      if(ptParseRes.ok){ const d=await ptParseRes.json(); ptWikitext=d?.parse?.wikitext?.['*']||''; }
+
+      // 3. EN Wikipedia - use ORIGINAL NAME (not PT redirect title)
+      if(!wiki){
+        const enRes=await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`);
+        if(enRes.ok){ const d=await enRes.json(); if(d.extract) wiki={...d,lang:'en'}; }
+      }
+      const enName = wiki?.lang==='pt' ? name : (wiki?.title||name);
+      const enParseRes=await fetch(`https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(enName)}&prop=wikitext&format=json&origin=*`);
+      if(enParseRes.ok){ const d=await enParseRes.json(); enWikitext=d?.parse?.wikitext?.['*']||''; }
+      // Follow EN redirect if needed
+      if(enWikitext.startsWith('#REDIRECT')){
+        const redir=enWikitext.match(/\[\[([^\]]+)\]\]/);
+        if(redir){
+          const rRes=await fetch(`https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(redir[1])}&prop=wikitext&format=json&origin=*`);
+          if(rRes.ok){ const rd=await rRes.json(); enWikitext=rd?.parse?.wikitext?.['*']||''; }
         }
       }
 
-      function getField(key){
-        const m=wikitext.match(new RegExp('\\|\\s*'+key+'\\s*=\\s*([^\\n]+)','i'));
-        return m?m[1].trim():null;
-      }
+      // 4. Reference image & description
+      let desc='', refImg='';
+      if(wiki?.extract) desc=wiki.extract.split('. ').slice(0,3).join('. ')+'.';
+      if(wiki?.thumbnail?.source) refImg=wiki.thumbnail.source;
 
-      // Extract all data
-      let ra='', dec='', mag='', dist='', distUnit='ly', type='', desc='', refImg='';
-      let messier='', caldwell='', ngc='';
-
-      // Description (prefer PT)
-      if(wiki?.extract) desc = wiki.extract.split('. ').slice(0,3).join('. ')+'.';
-
-      // Reference image
-      if(wiki?.thumbnail?.source) refImg = wiki.thumbnail.source;
+      // 5. Extract fields — try PT first, fallback to EN
+      // PT field names: asc/ra, decl/dec, magnitudeapar/appmag_v, distanoluz/dist_ly, paralaxe/parallax
+      let ra='',dec='',mag='',dist='',distUnit='ly',type='';
 
       // RA
-      const raVal=getField('ra');
+      const raVal = getField('asc',ptWikitext)||getField('ra',ptWikitext)||getField('ra',enWikitext);
       if(raVal){ const p=parseRAtemplate(raVal); if(p) ra=p; }
-      if(!ra){ const h=getField('ra_h'),m2=getField('ra_m'),s=getField('ra_s'); if(h&&m2) ra=`${h}h${m2.padStart(2,'0')}m${s||'0'}s`; }
+      if(!ra){ const h=getField('ra_h',enWikitext),m2=getField('ra_m',enWikitext),s=getField('ra_s',enWikitext); if(h&&m2) ra=`${h}h${m2.padStart(2,'0')}m${s||'0'}s`; }
 
       // Dec
-      const decVal=getField('dec');
+      const decVal = getField('decl',ptWikitext)||getField('dec',ptWikitext)||getField('dec',enWikitext);
       if(decVal){ const p=parseDECtemplate(decVal); if(p) dec=p; }
-      if(!dec){ const d=getField('dec_d'),m2=getField('dec_m'),s=getField('dec_s'); if(d&&m2) dec=`${parseFloat(d)>=0?'+':''}${d}\u00b0${m2.padStart(2,'0')}'${s||'0'}\u0022`; }
+      if(!dec){ const d2=getField('dec_d',enWikitext),m2=getField('dec_m',enWikitext),s=getField('dec_s',enWikitext); if(d2&&m2) dec=`${parseFloat(d2)>=0?'+':''}${d2}\u00b0${m2.padStart(2,'0')}'${s||'0'}\u0022`; }
 
-      // Magnitude
-      const magVal=getField('appmag_v')||getField('magnitude')||getField('apparent_magnitude');
+      // Magnitude — handle Unicode minus (−) and comma decimal
+      const magVal = getField('magnitudeapar',ptWikitext)||getField('appmag_v',ptWikitext)||getField('appmag_v',enWikitext)||getField('magnitude',enWikitext);
       if(magVal){ const n=firstNum(magVal); if(n!==null) mag=String(n); }
 
       // Distance
-      const distLy=getField('dist_ly')||getField('distance_ly');
-      const distMly=getField('dist_mly');
-      const distPc=getField('dist_pc')||getField('distance_pc');
-      let distResult=null;
-      if(distLy) distResult=parseDist(distLy);
-      else if(distMly){ const n=firstNum(distMly); if(n) distResult={ly:n*1e6}; }
-      else if(distPc){ const n=firstNum(distPc); if(n) distResult={ly:n*3.26156}; }
-      if(distResult){
-        const ly=distResult.ly;
-        if(ly>=1e9){dist=(ly/1e9).toFixed(2);distUnit='Gly';}
-        else if(ly>=1e6){dist=(ly/1e6).toFixed(2);distUnit='Mly';}
-        else{dist=Math.round(ly).toString();distUnit='ly';}
-      }
+      const distLy = getField('distanoluz',ptWikitext)||getField('dist_ly',ptWikitext)||getField('dist_ly',enWikitext);
+      const distPc = getField('distparsec',ptWikitext)||getField('dist_pc',ptWikitext)||getField('dist_pc',enWikitext);
+      const parallax = getField('paralaxe',ptWikitext)||getField('parallax',enWikitext);
+      if(distLy){ const r=parseDist(distLy); if(r){ const ly=r.ly; if(ly>=1e9){dist=(ly/1e9).toFixed(2);distUnit='Gly';}else if(ly>=1e6){dist=(ly/1e6).toFixed(2);distUnit='Mly';}else{dist=Math.round(ly).toString();distUnit='ly';} }}
+      else if(distPc){ const n=firstNum(distPc||''); if(n){ const ly=n*3.26156; if(ly>=1e6){dist=(ly/1e6).toFixed(2);distUnit='Mly';}else{dist=Math.round(ly).toString();distUnit='ly';} }}
+      else if(parallax){ const p=firstNum(parallax||''); if(p&&p>0){ const ly=(1000/p)*3.26156; dist=ly.toFixed(1);distUnit='ly'; }}
 
       // Type
-      const typeKw=wikitext.toLowerCase();
+      const wt=enWikitext.toLowerCase()||ptWikitext.toLowerCase();
       const typeMap=[['galaxy','galaxy'],['nebula','nebula'],['cluster','cluster'],['planet','planet'],['comet','comet'],['star','star']];
-      for(const [kw,t] of typeMap){ if(typeKw.includes(kw)){type=t;break;} }
+      for(const [kw,t] of typeMap){ if(wt.includes(kw)){type=t;break;} }
 
-      // Catalogs from wikitext
-      const mWiki=wikitext.match(/Messier[\W](\d+)|[^A-Za-z0-9]M(\d{1,3})[^A-Za-z0-9]/);
-      const ngcWiki=wikitext.match(/(?:\[\[[^\]]*\|)?NGC\]?\]?\s*(\d+)/i);
-      const caldwellWiki=wikitext.match(/(?:\[\[[^\]]*\|)?Caldwell\]?\]?\s*(\d+)/i);
+      // Catalogs
+      let messier='',caldwell='',ngc='';
+      const allWt = ptWikitext+' '+enWikitext;
+      const mWiki=allWt.match(/Messier[\W](\d+)|[^A-Za-z0-9]M(\d{1,3})[^A-Za-z0-9]/);
+      const ngcWiki=allWt.match(/(?:\[\[[^\]]*\|)?NGC\]?\]?\s*(\d+)/i);
+      const cWiki=allWt.match(/(?:\[\[[^\]]*\|)?Caldwell\]?\]?\s*(\d+)/i);
       if(mWiki){ const n=mWiki[1]||mWiki[2]; if(n) messier='M'+n; }
       if(ngcWiki) ngc='NGC '+ngcWiki[1];
-      if(caldwellWiki) caldwell='C'+caldwellWiki[1];
-      // Fallback: NGC from page title
-      if(!ngc){ const tn=pageTitle.match(/NGC\s*(\d+)/i); if(tn) ngc='NGC '+tn[1]; }
-      // Name field catalogs
-      const mName=name.match(/\bM(\d+)\b/i); if(mName&&!messier) messier='M'+mName[1];
-      const cName=name.match(/\bC(\d+)\b/i); if(cName&&!caldwell) caldwell='C'+cName[1];
-      const nName=name.match(/\bNGC\s*(\d+)\b/i); if(nName&&!ngc) ngc='NGC '+nName[1];
+      if(cWiki) caldwell='C'+cWiki[1];
+      if(!ngc){ const tn=(wiki?.title||name).match(/NGC\s*(\d+)/i); if(tn) ngc='NGC '+tn[1]; }
+      const mN=name.match(/\bM(\d+)\b/i); if(mN&&!messier) messier='M'+mN[1];
+      const cN=name.match(/\bC(\d+)\b/i); if(cN&&!caldwell) caldwell='C'+cN[1];
+      const nN=name.match(/\bNGC\s*(\d+)\b/i); if(nN&&!ngc) ngc='NGC '+nN[1];
 
-      // Show confirmation modal
-      showAutofillModal({ra,dec,mag,dist,distUnit,type,desc,refImg,messier,caldwell,ngc,pageTitle});
+      showAutofillModal({ra,dec,mag,dist,distUnit,type,desc,refImg,messier,caldwell,ngc,pageTitle:wiki?.title||name});
 
     } catch(e){
       console.warn('Autofill error:',e);
@@ -3295,6 +3290,7 @@ async function autofillObject(){
     btn.disabled=false; btn.textContent='\u{1F50D} Auto-fill';
   })();
 }
+
 
 function showAutofillModal(data){
   // Build modal HTML
