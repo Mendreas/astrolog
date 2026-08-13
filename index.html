@@ -3168,12 +3168,16 @@ async function autofillObject(){
   }
   // Helper: extract distance in ly
   function parseDist(val){
-    // {{val|2570|90|...}} → 2570
-    // {{convert|7.22|+/-|...|Mpc|e6ly...}} → 7.22e6 ly
+    // {{convert|7.22|...|Mpc|...}} → Mpc to ly
     const mMpc=val.match(/\{\{convert\s*\|\s*([\d.]+)\s*\|[^|]*\|\s*Mpc/i);
     if(mMpc) return {ly:parseFloat(mMpc[1])*3.26156e6};
+    // {{convert|...|Mly...}}
     const mMLy=val.match(/\{\{convert\s*\|\s*([\d.]+)\s*\|[^|]*\|\s*Mly/i);
     if(mMLy) return {ly:parseFloat(mMLy[1])*1e6};
+    // "25.2 ± 1.0 M[[light-year|ly]]" or "25.2 Mly" format
+    const mMlyPlain=val.match(/([\d.]+)\s*(?:[±+\-][^M\d]*)?\s*M(?:ly|\[\[)/i);
+    if(mMlyPlain) return {ly:parseFloat(mMlyPlain[1])*1e6};
+    // {{val|2570|90|...}} → plain number
     const n=firstNum(val);
     if(n) return {ly:n};
     return null;
@@ -3268,11 +3272,16 @@ async function autofillObject(){
 
         // Catalog IDs
         const mWiki=wikitext.match(/Messier[^\w](\d+)|[^A-Za-z0-9]M(\d{1,3})[^A-Za-z0-9]/);
-        const ngcWiki=wikitext.match(/NGC\s*(\d+)/i);
-        const caldwellWiki=wikitext.match(/Caldwell\s*(\d+)/i);
+        const ngcWiki=wikitext.match(/(?:\[\[[^\]]*\|)?NGC\]?\]?\s*(\d+)/i);
+        const caldwellWiki=wikitext.match(/(?:\[\[[^\]]*\|)?Caldwell\]?\]?\s*(\d+)/i);
         if(mWiki){ const num=mWiki[1]||mWiki[2]; if(num){ const sel=document.getElementById('fCatalog'); if(sel&&!sel.value) sel.value='M'+num; }}
         if(ngcWiki){ const inp=document.getElementById('fCatalogManual'); if(inp&&!inp.value) inp.value='NGC '+ngcWiki[1]; }
         if(caldwellWiki){ const num=caldwellWiki[1]; if(num){ const sel=document.getElementById('fCatalogC'); if(sel&&!sel.value) sel.value='C'+num; }}
+        // Also try to detect NGC from page title (e.g. "NGC 6946")
+        if(!document.getElementById('fCatalogManual')?.value){
+          const titleNgc=(pageTitle||'').match(/NGC\s*(\d+)/i);
+          if(titleNgc){ const inp=document.getElementById('fCatalogManual'); if(inp) inp.value='NGC '+titleNgc[1]; }
+        }
       }
 
       // ── 3. Catalog IDs from name field itself ───────────────────────────────
