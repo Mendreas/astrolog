@@ -1033,8 +1033,63 @@ const OBJ_ICONS_SM = {
 };
 
 // ── STATE ────────────────────────────────────────────────────────────────────
-let observations = JSON.parse(localStorage.getItem('observations') || '[]');
-let wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+// ── IndexedDB setup ─────────────────────────────────────────────────────────
+let observations = [];
+let wishlist     = [];
+let _db = null;
+
+function openDB(){
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('AstroLogsDB', 1);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if(!db.objectStoreNames.contains('observations'))
+        db.createObjectStore('observations', {keyPath:'id'});
+      if(!db.objectStoreNames.contains('wishlist'))
+        db.createObjectStore('wishlist', {keyPath:'id'});
+      if(!db.objectStoreNames.contains('settings'))
+        db.createObjectStore('settings', {keyPath:'key'});
+    };
+    req.onsuccess = e => { _db = e.target.result; resolve(_db); };
+    req.onerror   = e => { console.error('IDB error', e); reject(e); };
+  });
+}
+
+function idbGetAll(store){
+  return new Promise((resolve, reject) => {
+    const tx  = _db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).getAll();
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e);
+  });
+}
+
+function idbPut(store, value){
+  return new Promise((resolve, reject) => {
+    const tx  = _db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).put(value);
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e);
+  });
+}
+
+function idbDelete(store, key){
+  return new Promise((resolve, reject) => {
+    const tx  = _db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).delete(key);
+    req.onsuccess = e => resolve();
+    req.onerror   = e => reject(e);
+  });
+}
+
+function idbClear(store){
+  return new Promise((resolve, reject) => {
+    const tx  = _db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).clear();
+    req.onsuccess = e => resolve();
+    req.onerror   = e => reject(e);
+  });
+}
 let currentPage = 'dashboard';
 let editId = null;
 let calDate = new Date();
@@ -1139,31 +1194,26 @@ function setLang(l){
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 function save(){
-  try {
-    localStorage.setItem('observations', JSON.stringify(observations));
-    return true;
-  } catch(e){
-    // Storage full - strip large images and try again
-    const slim = observations.map(o=>({
-      ...o,
-      image: o.image&&o.image.startsWith('data:')&&o.image.length>150000 ? '' : o.image,
-      images: (o.images||[]).filter(img=>!img||!img.startsWith('data:')||img.length<150000),
-      refImage: o.refImage&&o.refImage.startsWith('data:')&&o.refImage.length>100000?'':o.refImage,
-    }));
-    try {
-      localStorage.setItem('observations', JSON.stringify(slim));
-      observations = slim;
-      toast(lang==='pt'
-        ?'⚠️ Guardado! Imagens grandes removidas (armazenamento cheio). Usa Exportar JSON para backup.'
-        :'⚠️ Saved! Large images removed (storage full). Use Export JSON for backup.','warn',7000);
-      return true;
-    } catch(e2){
-      toast(lang==='pt'?'❌ Sem espaço! Vai a Definições → Libertar Espaço':'❌ Storage full! Go to Settings → Free Storage','err',8000);
-      return false;
-    }
-  }
+  // Sync save to IDB (fire and forget — UI stays responsive)
+  if(!_db){ console.warn('IDB not ready'); return false; }
+  const tx = _db.transaction('observations','readwrite');
+  const store = tx.objectStore('observations');
+  observations.forEach(o => store.put(o));
+  tx.onerror = e => console.error('IDB save error', e);
+  // Also save wishlist
+  const tx2 = _db.transaction('wishlist','readwrite');
+  const ws = tx2.objectStore('wishlist');
+  ws.clear();
+  wishlist.forEach(w => ws.put(w));
+  return true;
 }
-function saveWL(){ localStorage.setItem('wishlist', JSON.stringify(wishlist)); }
+function saveWL(){
+  if(!_db) return;
+  const tx = _db.transaction('wishlist','readwrite');
+  const st = tx.objectStore('wishlist');
+  st.clear();
+  wishlist.forEach(w => st.put(w));
+}
 
 function toast(msg, type='success'){
   const el = document.getElementById('toast');
@@ -3414,9 +3464,9 @@ function showDetail(id){
 function deleteObs(id){
   if(!confirm(t('confirm_delete'))) return;
   observations = observations.filter(o=>o.id!==id);
-  save(); updateBadges();
+  if(_db) idbDelete('observations', id).catch(e=>console.error('Delete error',e));
+  updateBadges();
   navigate(currentPage);
-  toast(lang==='pt'?'Observação apagada':'Observation deleted');
 }
 
 // ── WISHLIST SAVE ─────────────────────────────────────────────────────────────
@@ -3496,29 +3546,24 @@ function importData(e){
   const file = e.target.files[0];
   if(!file) return;
   const reader = new FileReader();
-  reader.onload = ev => {
+  reader.onload = async ev => {
     try {
       const data = JSON.parse(ev.target.result);
       if(data.observations) {
         observations = data.observations;
-        try {
-          localStorage.setItem('observations', JSON.stringify(observations));
-        } catch(e){
-          // Too large — strip big images on import
-          const slim = observations.map(o=>({
-            ...o,
-            image: o.image&&o.image.startsWith('data:')&&o.image.length>200000?'':o.image,
-            images:(o.images||[]).filter(img=>!img||!img.startsWith('data:')||img.length<200000),
-            refImage: o.refImage&&o.refImage.length>100000?'':o.refImage,
-          }));
-          observations = slim;
-          localStorage.setItem('observations', JSON.stringify(slim));
-          toast(lang==='pt'?'⚠️ Importado sem imagens grandes (limite de armazenamento)':'⚠️ Imported without large images (storage limit)','warn',6000);
-        }
+        // Save all to IDB (no size limit)
+        await idbClear('observations');
+        const tx = _db.transaction('observations','readwrite');
+        const store = tx.objectStore('observations');
+        observations.forEach(o => store.put(o));
+        await new Promise(r => tx.oncomplete = r);
       }
       if(data.wishlist) {
         wishlist = data.wishlist;
-        localStorage.setItem('astro_wishlist', JSON.stringify(wishlist));
+        await idbClear('wishlist');
+        const txw = _db.transaction('wishlist','readwrite');
+        const stw = txw.objectStore('wishlist');
+        wishlist.forEach(w => stw.put(w));
       }
       if(data.profile) {
         if(data.profile.username) localStorage.setItem('astro_username', data.profile.username);
@@ -3957,23 +4002,23 @@ function renderTelescopeList(){
   ).join('');
 }
 
-function clearImageStorage(){
-  if(!confirm(lang==='pt'?'Isto vai remover imagens grandes do armazenamento local (mantém as observações). Exporta o JSON antes para não perder as fotos. Continuar?':'This will remove large images from local storage (keeps observations). Export JSON first to keep photos. Continue?')) return;
+async function clearImageStorage(){
+  if(!confirm(lang==='pt'?'Isto vai remover imagens grandes (>200KB) das observações. Exporta o JSON antes para não perder fotos. Continuar?':'This will remove large images (>200KB). Export JSON first to keep photos. Continue?')) return;
   let freed=0;
   observations = observations.map(o=>{
-    const newImgs=(o.images||[]).filter(img=>!img||!img.startsWith('data:')||img.length<50000);
+    const newImgs=(o.images||[]).filter(img=>!img||!img.startsWith('data:')||img.length<200000);
     if(newImgs.length !== (o.images||[]).length) freed++;
-    const newRef=o.refImage&&o.refImage.startsWith('data:')&&o.refImage.length>50000?'':o.refImage;
-    const newImg=o.image&&o.image.startsWith('data:')&&o.image.length>50000?(newImgs[0]||''):o.image;
+    const newRef=o.refImage&&o.refImage.startsWith('data:')&&o.refImage.length>100000?'':o.refImage;
+    const newImg=o.image&&o.image.startsWith('data:')&&o.image.length>200000?(newImgs[0]||''):o.image;
     return {...o, image:newImg, images:newImgs, refImage:newRef};
   });
-  try{
-    localStorage.setItem('observations', JSON.stringify(observations));
-    toast(lang==='pt'?'✅ Espaço libertado! '+freed+' observações com imagens removidas':'✅ Space freed! '+freed+' observations with images removed');
-    navigate(currentPage);
-  }catch(e){
-    toast('Erro ao limpar','err');
-  }
+  await idbClear('observations');
+  const tx=_db.transaction('observations','readwrite');
+  const st=tx.objectStore('observations');
+  observations.forEach(o=>st.put(o));
+  await new Promise(r=>tx.oncomplete=r);
+  toast(lang==='pt'?'✅ '+freed+' observações com imagens grandes removidas':'✅ '+freed+' observations with large images removed');
+  navigate(currentPage);
 }
 document.addEventListener('DOMContentLoaded', ()=>{
   // Global error handler
@@ -4007,6 +4052,47 @@ document.addEventListener('DOMContentLoaded', ()=>{
     }
   })();
 
+  // ── Open IndexedDB then start app ─────────────────────────────────────────
+  openDB().then(async () => {
+    // Migrate from localStorage if needed
+    const lsObs = localStorage.getItem('observations');
+    if(lsObs){
+      try {
+        const migrated = JSON.parse(lsObs);
+        if(migrated.length > 0){
+          const existing = await idbGetAll('observations');
+          if(existing.length === 0){
+            const tx = _db.transaction('observations','readwrite');
+            const store = tx.objectStore('observations');
+            migrated.forEach(o => store.put(o));
+            await new Promise(r => tx.oncomplete = r);
+            toast(lang==='pt'?'✅ Dados migrados para IndexedDB (mais espaço!)':'✅ Data migrated to IndexedDB (more space!)');
+          }
+          localStorage.removeItem('observations');
+        }
+      } catch(e){ console.warn('Migration error', e); }
+    }
+    const lsWish = localStorage.getItem('wishlist') || localStorage.getItem('astro_wishlist');
+    if(lsWish){
+      try {
+        const migrated = JSON.parse(lsWish);
+        if(migrated.length > 0){
+          const existing = await idbGetAll('wishlist');
+          if(existing.length === 0){
+            const tx = _db.transaction('wishlist','readwrite');
+            const store = tx.objectStore('wishlist');
+            migrated.forEach(w => store.put(w));
+            await new Promise(r => tx.oncomplete = r);
+          }
+          localStorage.removeItem('wishlist');
+          localStorage.removeItem('astro_wishlist');
+        }
+      } catch(e){ console.warn('Wishlist migration error', e); }
+    }
+    // Load data from IDB
+    observations = await idbGetAll('observations');
+    wishlist     = await idbGetAll('wishlist');
+
   const _uname = localStorage.getItem('astro_username')||'Mendreas';
   const _urole = getAstroTitle(observations.length);
   const _uinit = _uname[0].toUpperCase();
@@ -4025,6 +4111,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if(sb2) sb2.classList.remove('collapsed');
   }
   navigate('dashboard');
+  }); // end openDB().then
 
   // Close modals on overlay click
   document.querySelectorAll('.modal-overlay').forEach(m=>{
