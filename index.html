@@ -3046,6 +3046,13 @@ function openAddModal(id=null){
       document.getElementById('fDesc').value=obs.description||'';
       document.getElementById('fImgUrl').value=(obs.image&&!obs.image.startsWith('data:'))?obs.image:'';
       document.getElementById('fFav').checked=obs.favorite||false;
+      // Populate catalog fields
+      if(obs.ngc) setCatalogField(obs.ngc);
+      else {
+        const fc=document.getElementById('fCatalog'); if(fc) fc.value='';
+        const fcc=document.getElementById('fCatalogC'); if(fcc) fcc.value='';
+        const fcm=document.getElementById('fCatalogManual'); if(fcm) fcm.value='';
+      }
       // Load existing images into userImages array
       userImages = [];
       if(obs.images && obs.images.length){
@@ -3338,6 +3345,16 @@ function showAutofillModal(data){
     </div>
     ${data.refImg?`<div style="margin-bottom:10px"><label style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:3px">IMAGEM DE REFERÊNCIA</label>
       <img src="${data.refImg}" style="width:100%;max-height:120px;object-fit:cover;border-radius:8px;opacity:.8"></div>`:''}
+    ${data.refImg?`<div style="margin-bottom:10px">
+      <label style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:4px">IMAGEM DE REFERÊNCIA</label>
+      <div style="position:relative;border-radius:8px;overflow:hidden;border:1px solid rgba(200,155,50,.2)">
+        <img src="${data.refImg}" style="width:100%;max-height:140px;object-fit:cover;display:block;opacity:.8">
+        <div style="position:absolute;bottom:4px;left:6px;font-size:9px;background:rgba(200,155,50,.8);color:#000;padding:1px 6px;border-radius:3px;letter-spacing:.08em">REFERÊNCIA</div>
+        <label style="position:absolute;top:6px;right:8px;display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.65);border-radius:5px;padding:3px 8px;cursor:pointer;font-size:10px;color:#fff">
+          <input type="checkbox" id="af_applyImg" checked style="cursor:pointer"> Aplicar imagem
+        </label>
+      </div>
+    </div>`:''}
     <div><label style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:3px">DESCRIÇÃO</label>
       <textarea class="form-input" id="af_desc" rows="3" style="resize:vertical">${data.desc||''}</textarea></div>
     <input type="hidden" id="af_refImg" value="${data.refImg||''}">
@@ -3349,19 +3366,20 @@ function applyAutofill(){
   const g = id => document.getElementById(id);
   const v = id => (g(id)?.value||'').trim();
 
-  // Apply to form fields
+  // Only overwrite fields that have actual data (never blank out existing data)
   const m=v('af_messier'); if(m){ const s=g('fCatalog'); if(s) s.value=m; }
   const c=v('af_caldwell'); if(c){ const s=g('fCatalogC'); if(s) s.value=c; }
-  const n=v('af_ngc'); const ni=g('fCatalogManual'); if(ni) ni.value=n;
+  const n=v('af_ngc'); if(n){ const ni=g('fCatalogManual'); if(ni) ni.value=n; }
   const tp=v('af_type'); if(tp){ const s=g('fType'); if(s){s.value=tp;updateTypeIcon(tp);} }
-  const mg=v('af_mag'); const mi=g('fMag'); if(mi) mi.value=mg;
-  const ra=v('af_ra'); const ri=g('fRA'); if(ri) ri.value=ra;
-  const dc=v('af_dec'); const di=g('fDec'); if(di) di.value=dc;
-  const ds=v('af_dist'); const dsi=g('fDist'); if(dsi) dsi.value=ds;
-  const du=v('af_distUnit'); const dui=g('fDistUnit'); if(dui) dui.value=du;
-  const desc=v('af_desc'); const dei=g('fDesc'); if(dei) dei.value=desc;
+  const mg=v('af_mag'); if(mg){ const mi=g('fMag'); if(mi) mi.value=mg; }
+  const ra=v('af_ra'); if(ra){ const ri=g('fRA'); if(ri) ri.value=ra; }
+  const dc=v('af_dec'); if(dc){ const di=g('fDec'); if(di) di.value=dc; }
+  const ds=v('af_dist'); if(ds){ const dsi=g('fDist'); if(dsi) dsi.value=ds; }
+  const du=v('af_distUnit'); if(du){ const dui=g('fDistUnit'); if(dui) dui.value=du; }
+  const desc=v('af_desc'); if(desc){ const dei=g('fDesc'); if(dei) dei.value=desc; }
   const ri2=v('af_refImg');
-  if(ri2){
+  const applyImg = g('af_applyImg')?.checked !== false; // default true if not present
+  if(ri2 && applyImg){
     const rfu=g('fRefImgUrl'); if(rfu) rfu.value=ri2;
     const rfw=g('refImgPreviewWrap'); if(rfw) rfw.style.display='block';
     const rfe=g('refImgPreview'); if(rfe) rfe.src=ri2;
