@@ -2243,6 +2243,205 @@ function filterByLocation(loc){
 }
 
 // ── PLANEAMENTO ──────────────────────────────────────────────────────────────
+
+// ── MESSIER MARATHON ─────────────────────────────────────────────────────────
+function getMessierObserved(){
+  const observed = new Set();
+  observations.forEach(o => {
+    const ngc = (o.ngc||'').toUpperCase();
+    // Check direct M number
+    const mDirect = ngc.match(/^M(\d+)$/);
+    if(mDirect) observed.add(parseInt(mDirect[1]));
+    // Check in name
+    const mName = (o.name||'').match(/M(\d{1,3})/);
+    if(mName){ const n=parseInt(mName[1]); if(n>=1&&n<=110) observed.add(n); }
+  });
+  return observed;
+}
+
+function renderMessierMarathon(){
+  const observed = getMessierObserved();
+  const now = new Date();
+  const thisMonth = now.getMonth() + 1;
+  const MONTHS = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const TYPE_ICON = (type) => OBJ_ICONS[type]||OBJ_ICONS['other'];
+  const TYPE_COLOR = {galaxy:'rgba(147,112,219,.3)',nebula:'rgba(255,105,180,.3)',cluster:'rgba(0,206,209,.3)',other:'rgba(255,165,0,.2)'};
+  const TYPE_LABEL_PT = {galaxy:'Galáxia',nebula:'Nebulosa',cluster:'Aglomerado',other:'Outro'};
+
+  // Sort options
+  const sort = document.getElementById('msortSelect')?.value || 'id';
+  let items = [...MESSIER_CATALOG];
+  if(sort==='mag') items.sort((a,b)=>a.mag-b.mag);
+  else if(sort==='month') items.sort((a,b)=>{ const am=(a.month-thisMonth+12)%12, bm=(b.month-thisMonth+12)%12; return am-bm; });
+  else if(sort==='type') items.sort((a,b)=>a.type.localeCompare(b.type));
+  else items.sort((a,b)=>a.id-b.id);
+
+  // Filter
+  const filter = document.getElementById('mfilterSelect')?.value || 'all';
+  if(filter==='observed') items = items.filter(o=>observed.has(o.id));
+  else if(filter==='pending') items = items.filter(o=>!observed.has(o.id));
+
+  const total = MESSIER_CATALOG.length;
+  const done = observed.size;
+  const pct = Math.round(done/total*100);
+
+  // Sky map: project RA/Dec to 2D using equirectangular
+  function raDecToXY(ra, dec, W, H){
+    const x = ((ra / 360) * W + W*0.5) % W;
+    const y = H/2 - (dec/90) * (H/2);
+    return {x, y};
+  }
+  const mapW = 700, mapH = 300;
+
+  let skyDots = '';
+  MESSIER_CATALOG.forEach(obj => {
+    const {x,y} = raDecToXY(obj.ra, obj.dec, mapW, mapH);
+    const obs = observed.has(obj.id);
+    const typeColors = {galaxy:'rgba(147,112,219,.9)',nebula:'rgba(255,105,180,.9)',cluster:'rgba(0,206,209,.9)',other:'rgba(255,165,0,.9)',star:'rgba(255,255,150,.9)'};
+    const color = obs ? (typeColors[obj.type]||'#e8b84b') : 'rgba(255,255,255,.2)';
+    const r = obs ? 5 : 3;
+    skyDots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}" fill="${color}" stroke="${obs?'rgba(255,255,255,.4)':'rgba(255,255,255,.08)'}" stroke-width="1" class="sky-dot" onclick="showMessierInfo(${obj.id})" style="cursor:pointer">
+      <title>M${obj.id}${obj.name?' — '+obj.name:''} (${TYPE_LABEL_PT[obj.type]||obj.type}) | ${obs?'✅ Observado':'⏳ Por observar'}</title>
+    </circle>`;
+  });
+
+  // RA gridlines (every 30°)
+  let gridLines = '';
+  for(let ra=0; ra<360; ra+=30){
+    const x = ((ra/360)*mapW + mapW*0.5) % mapW;
+    gridLines += `<line x1="${x}" y1="0" x2="${x}" y2="${mapH}" stroke="rgba(255,255,255,.06)" stroke-width="1"/>`;
+    gridLines += `<text x="${x+3}" y="12" fill="rgba(255,255,255,.2)" font-size="9">${ra}°</text>`;
+  }
+  // Dec gridlines (every 30°)
+  for(let dec=-60; dec<=60; dec+=30){
+    const y = mapH/2 - (dec/90)*(mapH/2);
+    gridLines += `<line x1="0" y1="${y}" x2="${mapW}" y2="${y}" stroke="rgba(255,255,255,.06)" stroke-width="1"/>`;
+    gridLines += `<text x="3" y="${y-3}" fill="rgba(255,255,255,.2)" font-size="9">${dec>0?'+':''}${dec}°</text>`;
+  }
+  // Ecliptic approximation
+  let ecliptic = 'M ';
+  for(let i=0; i<=360; i+=5){
+    const ra = i;
+    const dec = 23.5 * Math.sin((i-80) * Math.PI/180);
+    const {x,y} = raDecToXY(ra, dec, mapW, mapH);
+    ecliptic += (i===0?`${x.toFixed(1)},${y.toFixed(1)}`:`L${x.toFixed(1)},${y.toFixed(1)} `);
+  }
+
+  // Grid: render items
+  const grid = items.map(obj=>{
+    const obs = observed.has(obj.id);
+    const monthClose = Math.abs(obj.month - thisMonth) <= 1 || Math.abs(obj.month - thisMonth) >= 11;
+    return `<div onclick="showMessierInfo(${obj.id})" style="cursor:pointer;border-radius:10px;padding:10px 8px;background:${obs?'rgba(200,155,50,.1)':'rgba(255,255,255,.04)'};border:1px solid ${obs?'rgba(200,155,50,.3)':'rgba(255,255,255,.07)'};display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .15s;position:relative" onmouseover="this.style.background='${obs?'rgba(200,155,50,.18)':'rgba(255,255,255,.09)'}'" onmouseout="this.style.background='${obs?'rgba(200,155,50,.1)':'rgba(255,255,255,.04)'}'">
+      ${monthClose?'<div style="position:absolute;top:4px;right:4px;width:6px;height:6px;background:#4ade80;border-radius:50%;box-shadow:0 0 4px #4ade80" title="Melhor época agora"></div>':''}
+      <img src="${TYPE_ICON(obj.type)}" style="width:28px;height:28px;object-fit:contain">
+      <div style="font-size:11px;font-weight:700;color:${obs?'#e8b84b':'rgba(255,255,255,.7)'}">M${obj.id}</div>
+      <div style="font-size:9px;color:var(--text-muted);text-align:center;line-height:1.3">${obj.name||TYPE_LABEL_PT[obj.type]||obj.type}</div>
+      <div style="font-size:9px;color:rgba(255,255,255,.3)">mag ${obj.mag}</div>
+      ${obs?'<div style="font-size:10px;color:#4ade80">✓</div>':''}
+    </div>`;
+  }).join('');
+
+  document.getElementById('messierContent').innerHTML = `
+    <!-- Progress bar -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <div style="flex:1;background:rgba(255,255,255,.08);border-radius:6px;height:10px;overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,#e8b84b,#f0c060);border-radius:6px;transition:width .5s"></div>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:#e8b84b;white-space:nowrap">${done}/110 <span style="color:var(--text-muted);font-weight:400;font-size:11px">(${pct}%)</span></div>
+    </div>
+
+    <!-- Sky map -->
+    <div style="margin-bottom:16px;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:#050d1a">
+      <div style="padding:8px 12px;font-size:10px;color:rgba(255,255,255,.3);letter-spacing:.1em;border-bottom:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between">
+        <span>MAPA DO CÉU — OBJETOS MESSIER</span>
+        <span>
+          <span style="color:rgba(147,112,219,.9)">●</span> Galáxia &nbsp;
+          <span style="color:rgba(255,105,180,.9)">●</span> Nebulosa &nbsp;
+          <span style="color:rgba(0,206,209,.9)">●</span> Aglomerado &nbsp;
+          <span style="color:rgba(255,255,255,.2)">●</span> Por observar &nbsp;
+          <span style="color:#ff6b6b">——</span> Eclíptica
+        </span>
+      </div>
+      <svg width="100%" viewBox="0 0 ${mapW} ${mapH}" style="display:block">
+        ${gridLines}
+        <path d="${ecliptic}" fill="none" stroke="rgba(255,100,100,.4)" stroke-width="1.5" stroke-dasharray="4,3"/>
+        ${skyDots}
+      </svg>
+    </div>
+
+    <!-- Controls -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
+      <select class="form-select" id="mfilterSelect" onchange="renderMessierMarathon()" style="flex:0 0 160px">
+        <option value="all">Todos (${total})</option>
+        <option value="observed">✅ Observados (${done})</option>
+        <option value="pending">⏳ Por observar (${total-done})</option>
+      </select>
+      <select class="form-select" id="msortSelect" onchange="renderMessierMarathon()" style="flex:0 0 180px">
+        <option value="id">Ordenar: Número M</option>
+        <option value="month">Ordenar: Melhor época</option>
+        <option value="mag">Ordenar: Magnitude</option>
+        <option value="type">Ordenar: Tipo</option>
+      </select>
+      <div style="font-size:11px;color:var(--text-muted)">
+        <span style="color:#4ade80">●</span> Melhor época agora (${MONTHS[thisMonth]})
+      </div>
+    </div>
+
+    <!-- Grid -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px">
+      ${grid}
+    </div>
+  `;
+}
+
+function showMessierInfo(id){
+  const obj = MESSIER_CATALOG.find(o=>o.id===id);
+  if(!obj) return;
+  const observed = getMessierObserved();
+  const obs = observed.has(id);
+  const MONTHS = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const TYPE_LABEL_PT = {galaxy:'Galáxia',nebula:'Nebulosa',cluster:'Aglomerado',other:'Outro'};
+  const raH = Math.floor(obj.ra/15);
+  const raM = Math.floor((obj.ra/15-raH)*60);
+  const raS = Math.round(((obj.ra/15-raH)*60-raM)*60);
+  const decSign = obj.dec>=0?'+':'-';
+  const decD = Math.floor(Math.abs(obj.dec));
+  const decM = Math.floor((Math.abs(obj.dec)-decD)*60);
+
+  const bmi = document.getElementById('badgeModalImg');
+  if(bmi){ bmi.src=OBJ_ICONS[obj.type]||OBJ_ICONS['other']; bmi.style.display='block'; bmi.style.cssText='width:80px;height:80px;object-fit:contain;margin:0 auto 14px;display:block;filter:drop-shadow(0 0 8px rgba(200,155,50,.4))'; }
+  document.getElementById('badgeModalTitle').textContent = 'M'+id+(obj.name?' — '+obj.name:'');
+  document.getElementById('badgeModalSub').textContent = TYPE_LABEL_PT[obj.type]||obj.type;
+  document.getElementById('badgeModalDesc').innerHTML =
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px">'
+    +'<div><span style="color:var(--text-muted)">AR:</span> '+raH+'h '+raM+'m '+raS+'s</div>'
+    +'<div><span style="color:var(--text-muted)">Dec:</span> '+decSign+decD+'° '+decM+'\u0027</div>'
+    +'<div><span style="color:var(--text-muted)">Magnitude:</span> '+obj.mag+'</div>'
+    +'<div><span style="color:var(--text-muted)">Melhor mês:</span> '+MONTHS[obj.month]+'</div>'
+    +'</div>'
+    +'<div style="margin-top:10px;padding:8px;border-radius:8px;background:'+(obs?'rgba(74,222,128,.1)':'rgba(255,255,255,.05)')+';text-align:center;font-size:13px;color:'+(obs?'#4ade80':'var(--text-muted)')+'">'+
+    (obs ? '✅ Já observado!' : '⏳ Ainda não observado')
+    +'</div>'
+    +(obs?'':'<div style="margin-top:8px;text-align:center"><button onclick="addToWishlistFromModal('+ id +')" class="btn btn-secondary btn-sm" style="font-size:11px">+ Adicionar à lista de desejos</button></div>');
+  openModal('badgeModal');
+}
+
+
+function addToWishlistFromModal(id){
+  closeModal('badgeModal');
+  addToWishlist(id);
+}
+function addToWishlist(messierNum){
+  const obj = MESSIER_CATALOG.find(o=>o.id===messierNum);
+  if(!obj) return;
+  const name = 'M'+messierNum+(obj.name?' — '+obj.name:'');
+  if(!wishlist.find(w=>w.name===name)){
+    wishlist.push({id:Date.now(),name,type:obj.type,priority:'medium',notes:'',date:''});
+    saveWL();
+    toast(lang==='pt'?'Adicionado à lista de desejos!':'Added to wishlist!');
+  }
+}
+
 function pagePlaneamento(){
   const filtered = wishlist.filter(w => true);
 
@@ -2269,7 +2468,9 @@ function pagePlaneamento(){
 
   return `
   <div class="section-header">
-    <div class="section-title">${t('title_plan')} <span style="color:var(--text-muted);font-size:15px">(${wishlist.length})</span></div>
+    <div class="section-title">${t('title_plan')} <span style="color:var(--text-muted);font-size:15px">(${wishlist.length})</span>
+    <button onclick="switchPlanTab('messier')" class="btn btn-secondary btn-sm" style="font-size:11px;margin-top:4px">🏆 Messier Marathon</button>
+  </div>
     <button class="btn btn-primary" onclick="openModal('wishModal')">${t('add_plan')}</button>
   </div>
 
@@ -2329,6 +2530,8 @@ function pagePlaneamento(){
   </div>
 
   <!-- Wishlist -->
+  <div id="messierContent" style="display:none;margin-top:0"></div>
+  <div id="wishlistContent">
   ${filtered.length===0 ? `<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">${t('wish_empty')}</div><div class="empty-sub">${t('wish_empty_sub')}</div></div>` :
   `<div class="grid-auto">${filtered.map(item => wishCardHTML(item)).join('')}</div>`}`;
 }
@@ -3733,6 +3936,7 @@ function initPageJS(page){
   }
   if(page==='catalogos'){setTimeout(()=>{const btn=document.getElementById('catFilterBtns')?.querySelector('.filter-btn');if(btn)showCatalog('messier',btn);},80);}
   if(page==='definicoes'){setTimeout(renderTelescopeList,50);}
+  if(page==='planeamento'){const mc=document.getElementById('messierContent');if(mc&&mc.style.display==='block')renderMessierMarathon();}
   if(page==='diario'){
     setTimeout(renderSavedNotes, 50);
   }
@@ -4182,6 +4386,19 @@ function compressImage(dataUrl, maxWidth=1200, quality=0.75){
 function compressAllImages(images){
   return Promise.all((images||[]).map(src=>compressImage(src)));
 }
+
+const MESSIER_CATALOG = [{"id": 1, "name": "Crab Nebula", "type": "nebula", "ra": 83.822, "dec": 22.014, "mag": 8.4, "month": 1}, {"id": 2, "name": "", "type": "cluster", "ra": 323.363, "dec": -0.823, "mag": 6.5, "month": 9}, {"id": 3, "name": "", "type": "cluster", "ra": 205.548, "dec": 28.377, "mag": 6.2, "month": 5}, {"id": 4, "name": "", "type": "cluster", "ra": 245.897, "dec": -26.526, "mag": 5.9, "month": 6}, {"id": 5, "name": "Rose Cluster", "type": "cluster", "ra": 229.638, "dec": 2.081, "mag": 6.7, "month": 6}, {"id": 6, "name": "Butterfly Cluster", "type": "cluster", "ra": 265.082, "dec": -32.216, "mag": 4.2, "month": 7}, {"id": 7, "name": "Ptolemy Cluster", "type": "cluster", "ra": 268.46, "dec": -34.793, "mag": 3.3, "month": 7}, {"id": 8, "name": "Lagoon Nebula", "type": "nebula", "ra": 270.924, "dec": -24.383, "mag": 6.0, "month": 7}, {"id": 9, "name": "", "type": "cluster", "ra": 259.791, "dec": -18.516, "mag": 7.7, "month": 7}, {"id": 10, "name": "", "type": "cluster", "ra": 254.288, "dec": -4.1, "mag": 6.4, "month": 6}, {"id": 11, "name": "Wild Duck", "type": "cluster", "ra": 282.767, "dec": -6.267, "mag": 5.8, "month": 8}, {"id": 12, "name": "", "type": "cluster", "ra": 251.809, "dec": -1.949, "mag": 6.7, "month": 6}, {"id": 13, "name": "Great Hercules", "type": "cluster", "ra": 250.423, "dec": 36.461, "mag": 5.8, "month": 7}, {"id": 14, "name": "", "type": "cluster", "ra": 264.401, "dec": -3.246, "mag": 7.6, "month": 7}, {"id": 15, "name": "", "type": "cluster", "ra": 322.493, "dec": 12.167, "mag": 6.2, "month": 9}, {"id": 16, "name": "Eagle Nebula", "type": "nebula", "ra": 274.7, "dec": -13.783, "mag": 6.4, "month": 7}, {"id": 17, "name": "Omega Nebula", "type": "nebula", "ra": 275.196, "dec": -16.176, "mag": 6.0, "month": 7}, {"id": 18, "name": "", "type": "cluster", "ra": 277.25, "dec": -17.133, "mag": 6.9, "month": 7}, {"id": 19, "name": "", "type": "cluster", "ra": 255.659, "dec": -26.268, "mag": 6.8, "month": 6}, {"id": 20, "name": "Trifid Nebula", "type": "nebula", "ra": 270.617, "dec": -23.033, "mag": 6.3, "month": 7}, {"id": 21, "name": "", "type": "cluster", "ra": 271.117, "dec": -22.5, "mag": 5.9, "month": 7}, {"id": 22, "name": "", "type": "cluster", "ra": 279.1, "dec": -23.905, "mag": 5.1, "month": 7}, {"id": 23, "name": "", "type": "cluster", "ra": 269.267, "dec": -19.017, "mag": 5.5, "month": 7}, {"id": 24, "name": "Sagittarius Star", "type": "other", "ra": 274.217, "dec": -18.417, "mag": 4.5, "month": 7}, {"id": 25, "name": "", "type": "cluster", "ra": 277.933, "dec": -19.117, "mag": 4.6, "month": 7}, {"id": 26, "name": "", "type": "cluster", "ra": 281.367, "dec": -9.383, "mag": 8.0, "month": 8}, {"id": 27, "name": "Dumbbell Nebula", "type": "nebula", "ra": 299.901, "dec": 22.721, "mag": 7.5, "month": 8}, {"id": 28, "name": "", "type": "cluster", "ra": 276.133, "dec": -24.867, "mag": 6.8, "month": 7}, {"id": 29, "name": "", "type": "cluster", "ra": 308.55, "dec": 38.533, "mag": 6.6, "month": 8}, {"id": 30, "name": "", "type": "cluster", "ra": 325.092, "dec": -23.18, "mag": 7.2, "month": 9}, {"id": 31, "name": "Andromeda Galaxy", "type": "galaxy", "ra": 10.685, "dec": 41.269, "mag": 3.4, "month": 10}, {"id": 32, "name": "", "type": "galaxy", "ra": 10.674, "dec": 40.865, "mag": 8.7, "month": 10}, {"id": 33, "name": "Triangulum Galaxy", "type": "galaxy", "ra": 23.462, "dec": 30.66, "mag": 5.7, "month": 10}, {"id": 34, "name": "", "type": "cluster", "ra": 40.517, "dec": 42.783, "mag": 5.2, "month": 11}, {"id": 35, "name": "", "type": "cluster", "ra": 92.267, "dec": 24.333, "mag": 5.1, "month": 2}, {"id": 36, "name": "", "type": "cluster", "ra": 84.067, "dec": 34.133, "mag": 6.0, "month": 1}, {"id": 37, "name": "", "type": "cluster", "ra": 88.067, "dec": 32.533, "mag": 5.6, "month": 2}, {"id": 38, "name": "", "type": "cluster", "ra": 82.183, "dec": 35.833, "mag": 6.4, "month": 1}, {"id": 39, "name": "", "type": "cluster", "ra": 323.917, "dec": 48.433, "mag": 4.6, "month": 9}, {"id": 40, "name": "Winnecke 4", "type": "other", "ra": 185.563, "dec": 58.083, "mag": 8.0, "month": 4}, {"id": 41, "name": "", "type": "cluster", "ra": 101.5, "dec": -20.733, "mag": 4.5, "month": 2}, {"id": 42, "name": "Orion Nebula", "type": "nebula", "ra": 83.822, "dec": -5.391, "mag": 4.0, "month": 1}, {"id": 43, "name": "De Mairan's Neb.", "type": "nebula", "ra": 83.883, "dec": -5.267, "mag": 9.0, "month": 1}, {"id": 44, "name": "Beehive Cluster", "type": "cluster", "ra": 130.1, "dec": 19.983, "mag": 3.1, "month": 3}, {"id": 45, "name": "Pleiades", "type": "cluster", "ra": 56.75, "dec": 24.117, "mag": 1.6, "month": 12}, {"id": 46, "name": "", "type": "cluster", "ra": 115.45, "dec": -14.817, "mag": 6.1, "month": 2}, {"id": 47, "name": "", "type": "cluster", "ra": 114.433, "dec": -14.483, "mag": 4.4, "month": 2}, {"id": 48, "name": "", "type": "cluster", "ra": 123.417, "dec": -5.717, "mag": 5.5, "month": 3}, {"id": 49, "name": "", "type": "galaxy", "ra": 187.444, "dec": 8.0, "mag": 8.4, "month": 4}, {"id": 50, "name": "", "type": "cluster", "ra": 105.7, "dec": -8.333, "mag": 5.9, "month": 2}, {"id": 51, "name": "Whirlpool Galaxy", "type": "galaxy", "ra": 202.47, "dec": 47.195, "mag": 8.4, "month": 5}, {"id": 52, "name": "", "type": "cluster", "ra": 351.167, "dec": 61.583, "mag": 6.9, "month": 10}, {"id": 53, "name": "", "type": "cluster", "ra": 198.23, "dec": 18.168, "mag": 7.7, "month": 4}, {"id": 54, "name": "", "type": "cluster", "ra": 283.764, "dec": -30.479, "mag": 7.6, "month": 7}, {"id": 55, "name": "", "type": "cluster", "ra": 294.997, "dec": -30.958, "mag": 6.3, "month": 8}, {"id": 56, "name": "", "type": "cluster", "ra": 289.148, "dec": 30.185, "mag": 8.3, "month": 8}, {"id": 57, "name": "Ring Nebula", "type": "nebula", "ra": 283.396, "dec": 33.029, "mag": 8.8, "month": 8}, {"id": 58, "name": "", "type": "galaxy", "ra": 189.432, "dec": 11.818, "mag": 9.7, "month": 4}, {"id": 59, "name": "", "type": "galaxy", "ra": 190.51, "dec": 11.647, "mag": 9.8, "month": 4}, {"id": 60, "name": "", "type": "galaxy", "ra": 190.917, "dec": 11.552, "mag": 8.8, "month": 4}, {"id": 61, "name": "", "type": "galaxy", "ra": 185.479, "dec": 4.474, "mag": 9.7, "month": 4}, {"id": 62, "name": "", "type": "cluster", "ra": 255.303, "dec": -30.113, "mag": 6.5, "month": 6}, {"id": 63, "name": "Sunflower Galaxy", "type": "galaxy", "ra": 198.956, "dec": 42.029, "mag": 8.6, "month": 5}, {"id": 64, "name": "Black Eye Galaxy", "type": "galaxy", "ra": 194.182, "dec": 21.682, "mag": 8.5, "month": 4}, {"id": 65, "name": "Leo Triplet", "type": "galaxy", "ra": 169.733, "dec": 13.092, "mag": 9.3, "month": 4}, {"id": 66, "name": "Leo Triplet", "type": "galaxy", "ra": 170.062, "dec": 12.991, "mag": 9.0, "month": 4}, {"id": 67, "name": "King Cobra", "type": "cluster", "ra": 132.825, "dec": 11.8, "mag": 6.9, "month": 3}, {"id": 68, "name": "", "type": "cluster", "ra": 189.867, "dec": -26.744, "mag": 7.8, "month": 4}, {"id": 69, "name": "", "type": "cluster", "ra": 277.846, "dec": -32.348, "mag": 7.7, "month": 7}, {"id": 70, "name": "", "type": "cluster", "ra": 284.999, "dec": -32.292, "mag": 7.9, "month": 8}, {"id": 71, "name": "", "type": "cluster", "ra": 298.444, "dec": 18.779, "mag": 6.1, "month": 8}, {"id": 72, "name": "", "type": "cluster", "ra": 313.364, "dec": -12.537, "mag": 9.3, "month": 9}, {"id": 73, "name": "", "type": "other", "ra": 314.75, "dec": -12.633, "mag": 9.0, "month": 9}, {"id": 74, "name": "Phantom Galaxy", "type": "galaxy", "ra": 24.174, "dec": 15.783, "mag": 9.4, "month": 10}, {"id": 75, "name": "", "type": "cluster", "ra": 301.521, "dec": -21.922, "mag": 8.5, "month": 8}, {"id": 76, "name": "Little Dumbbell", "type": "nebula", "ra": 25.578, "dec": 51.575, "mag": 10.1, "month": 10}, {"id": 77, "name": "Cetus A", "type": "galaxy", "ra": 40.67, "dec": -0.013, "mag": 8.9, "month": 11}, {"id": 78, "name": "", "type": "nebula", "ra": 86.683, "dec": 0.083, "mag": 8.3, "month": 1}, {"id": 79, "name": "", "type": "cluster", "ra": 81.044, "dec": -24.524, "mag": 7.7, "month": 1}, {"id": 80, "name": "", "type": "cluster", "ra": 244.261, "dec": -22.975, "mag": 7.3, "month": 6}, {"id": 81, "name": "Bode's Galaxy", "type": "galaxy", "ra": 148.888, "dec": 69.065, "mag": 6.9, "month": 3}, {"id": 82, "name": "Cigar Galaxy", "type": "galaxy", "ra": 148.968, "dec": 69.68, "mag": 8.4, "month": 3}, {"id": 83, "name": "Southern Pinwheel", "type": "galaxy", "ra": 204.254, "dec": -29.865, "mag": 7.5, "month": 5}, {"id": 84, "name": "", "type": "galaxy", "ra": 186.266, "dec": 12.887, "mag": 9.1, "month": 4}, {"id": 85, "name": "", "type": "galaxy", "ra": 186.346, "dec": 18.191, "mag": 9.2, "month": 4}, {"id": 86, "name": "", "type": "galaxy", "ra": 186.55, "dec": 12.946, "mag": 8.9, "month": 4}, {"id": 87, "name": "Virgo A", "type": "galaxy", "ra": 187.706, "dec": 12.391, "mag": 8.6, "month": 4}, {"id": 88, "name": "", "type": "galaxy", "ra": 187.996, "dec": 14.42, "mag": 9.6, "month": 4}, {"id": 89, "name": "", "type": "galaxy", "ra": 188.916, "dec": 12.556, "mag": 9.7, "month": 4}, {"id": 90, "name": "", "type": "galaxy", "ra": 188.866, "dec": 13.163, "mag": 9.5, "month": 4}, {"id": 91, "name": "", "type": "galaxy", "ra": 188.85, "dec": 14.5, "mag": 10.2, "month": 4}, {"id": 92, "name": "", "type": "cluster", "ra": 259.28, "dec": 43.136, "mag": 6.4, "month": 7}, {"id": 93, "name": "", "type": "cluster", "ra": 116.133, "dec": -23.85, "mag": 6.0, "month": 2}, {"id": 94, "name": "Cat's Eye Galaxy", "type": "galaxy", "ra": 192.721, "dec": 41.12, "mag": 8.2, "month": 5}, {"id": 95, "name": "", "type": "galaxy", "ra": 160.991, "dec": 11.704, "mag": 9.7, "month": 4}, {"id": 96, "name": "", "type": "galaxy", "ra": 160.991, "dec": 11.82, "mag": 9.2, "month": 4}, {"id": 97, "name": "Owl Nebula", "type": "nebula", "ra": 168.698, "dec": 55.019, "mag": 9.9, "month": 3}, {"id": 98, "name": "", "type": "galaxy", "ra": 183.451, "dec": 14.9, "mag": 10.1, "month": 4}, {"id": 99, "name": "", "type": "galaxy", "ra": 184.707, "dec": 14.417, "mag": 9.9, "month": 4}, {"id": 100, "name": "", "type": "galaxy", "ra": 185.729, "dec": 15.822, "mag": 9.4, "month": 4}, {"id": 101, "name": "Pinwheel Galaxy", "type": "galaxy", "ra": 210.802, "dec": 54.349, "mag": 7.9, "month": 5}, {"id": 102, "name": "Spindle Galaxy", "type": "galaxy", "ra": 226.623, "dec": 55.763, "mag": 9.9, "month": 5}, {"id": 103, "name": "", "type": "cluster", "ra": 23.333, "dec": 60.7, "mag": 7.4, "month": 11}, {"id": 104, "name": "Sombrero Galaxy", "type": "galaxy", "ra": 189.998, "dec": -11.623, "mag": 8.0, "month": 4}, {"id": 105, "name": "", "type": "galaxy", "ra": 161.957, "dec": 12.582, "mag": 9.8, "month": 4}, {"id": 106, "name": "", "type": "galaxy", "ra": 184.74, "dec": 47.304, "mag": 8.4, "month": 4}, {"id": 107, "name": "", "type": "cluster", "ra": 248.133, "dec": -13.054, "mag": 7.8, "month": 6}, {"id": 108, "name": "", "type": "galaxy", "ra": 167.879, "dec": 55.674, "mag": 10.0, "month": 3}, {"id": 109, "name": "", "type": "galaxy", "ra": 179.4, "dec": 53.375, "mag": 9.8, "month": 4}, {"id": 110, "name": "", "type": "galaxy", "ra": 10.092, "dec": 41.685, "mag": 8.5, "month": 10}];
+
+function switchPlanTab(tab){
+  const mc = document.getElementById('messierContent');
+  const wc = document.getElementById('wishlistContent');
+  if(!mc||!wc) return;
+  if(tab==='messier'){
+    mc.style.display='block'; wc.style.display='none'; renderMessierMarathon();
+  } else {
+    mc.style.display='none'; wc.style.display='block';
+  }
+}
 document.addEventListener('DOMContentLoaded', ()=>{
   // Global error handler
   window.onerror = (msg, src, line) => {
@@ -4412,4 +4629,5 @@ document.addEventListener('DOMContentLoaded', ()=>{
 </div>
 
 </body>
-</html>
+</html
+  </div><!-- end wishlistContent -->>
